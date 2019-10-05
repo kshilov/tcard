@@ -70,6 +70,7 @@ class Task(db.Model):
     task_type = db.Column(db.Integer)
     affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
+    
     message_queues = db.relationship('MessageQueue', backref='task', lazy=True)
 
     def __repr__(self):

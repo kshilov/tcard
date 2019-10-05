@@ -51,9 +51,7 @@ class TaskWorker():
 
         for message_queue in message_queues:
             task = message_queue.task
-
             offer = task.offer
-
             link = offer.tgLink
 
             message = task.previevText + link
