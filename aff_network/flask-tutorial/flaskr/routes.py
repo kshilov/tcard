@@ -1,12 +1,13 @@
 from flask import render_template, url_for, flash, redirect, request
-from flaskr import app, db, bcrypt
-from flaskr.models import User, Task, Channel, Offer, Category, CategoryList
+from global_web_instances import app, db, bcrypt
+from models import User, Task, Channel, Offer, Category, CategoryList
 from flask_login import login_user, current_user, logout_user, login_required
-from flaskr.forms import RegistrationForm, LoginForm, ChangePassForm, AddChannelForm, CreateOfferForm, AddCategoryForm
-
+from forms import RegistrationForm, LoginForm, ChangePassForm, AddChannelForm, CreateOfferForm, AddCategoryForm
+from global_web_instances import app, db, bcrypt
+import flask
+from celery_handlers import *
 
 @app.route("/")
-
 
 @app.route("/about")
 def about():
@@ -57,15 +58,14 @@ def account():
     if form.validate_on_submit():
         user = current_user
         if user and bcrypt.check_password_hash(user.password, form.passwordOld.data):
-            hashed_password = bcrypt.generate_password_hash(form.passwordNew.data).decode('utf-8')
-            User.query.filter_by(username=current_user.username).update({'password': hashed_password})
-            db.session.commit()
+        
+            user.change_password(form.passwordNew.data)
+
             flash('Password changed', 'success')
             return redirect(url_for('login'))
         else:
             flash('Change Unsuccessful. Please check your old password', 'danger')
     return render_template('account.html', title='Account', form=form)
-
 
 @app.route("/channel", methods=['GET', 'POST'])
 @login_required
@@ -77,6 +77,7 @@ def channel():
         db.session.commit()
         flash('Channel added', 'success')
         return redirect(url_for('channel'))
+    
     return render_template('channel.html', title='Channel', form=form)
 
 
@@ -86,8 +87,8 @@ def offer():
     form = CreateOfferForm()
     #categoryList = 
     price = 5
-    offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='inactive', advertId=current_user.id)
     if form.validate_on_submit():
+        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='inactive', advertId=current_user.id)
         db.session.add(offer)
         db.session.commit()
         flash('Offer created', 'success')
@@ -109,4 +110,22 @@ def category():
         flash('Category added', 'success')
         return redirect(url_for('category'))
         #else: flash('Category already exist', 'danger')
-    return render_template('category.html', title='Category', form=form)
+    return render_template('category.html', title='Category', form=form, allCategories=allCategories)
+
+@app.route("/task/approve", methods=['GET', 'POST'])
+@login_required
+#@moderator_only
+def task_approve():
+    pass
+
+    # change status in Tasks table
+
+    try:
+        emit_task_create.apply_async()
+    except Exception as e:
+        app.logger.info("task_approve emit_task_create.apply_async:%s" % str(e))
+        # Sorry something went wrong
+        # rollback status of a task
+        
+
+

@@ -1,4 +1,4 @@
-from flaskr import db, login_manager
+from global_web_instances import db, login_manager
 from flask_login import UserMixin
 
 
@@ -6,6 +6,7 @@ from flask_login import UserMixin
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+   
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -19,6 +20,21 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+    #ATTENTION: you should check old_password=current_password before calling this method
+    def change_password(self, new_password):
+        self.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
+        self.__commit()
+
+    def __commit(self):
+        exist = User.query.filter_by(id=self.id).first()
+
+        if not exist:
+            db.session.add(self)
+        
+        db.session.commit()
+
 
 
 class Channel(db.Model):
@@ -48,12 +64,27 @@ class Offer(db.Model):
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(10), index=True, nullable=False) # upproved \ unupproved
+    status = db.Column(db.String(10), index=True, nullable=False) # upproved \ unupproved \ queued
+#   status = db.Column(db.Integer, default=0) # upproved \ unupproved \ queued
+
     affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
 
     def __repr__(self):
         return '<Task {}>'.format(self.id)
+
+    def change_status(self, status):
+        self.status = status
+        
+        self.__commit()
+
+    def __commit(self):
+        exist = Task.query.filter_by(id=self.id).first()
+
+        if not exist:
+            db.session.add(self)
+        
+        db.session.commit()
 
 
 class Category(db.Model):
@@ -76,3 +107,19 @@ class CategoryList(db.Model):
 
     def __repr__(self):
         return '<CategoryList {}>'.format(self.tgUrl)
+
+class TaskQueue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    #....
+
+    def add(self, task):
+        # logic adding task
+        self.__commit()
+
+    def __commit(self):
+        exist = TaskQueue.query.filter_by(id=self.id).first()
+
+        if not exist:
+            db.session.add(self)
+        
+        db.session.commit()
