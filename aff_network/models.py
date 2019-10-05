@@ -67,6 +67,7 @@ class Task(db.Model):
     status = db.Column(db.String(10), index=True, nullable=False) # upproved \ unupproved \ queued
 #   status = db.Column(db.Integer, default=0) # upproved \ unupproved \ queued
     previevText = db.Column(db.String(10), index=True, nullable=False)
+    task_type = db.Column(db.Integer)
     affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
     message_queues = db.relationship('MessageQueue', backref='task', lazy=True)
@@ -112,11 +113,15 @@ class CategoryList(db.Model):
 class MessageQueue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     taskId = db.Column(db.Integer, db.ForeignKey('task.id'))
-    status = db.Column(db.String(10), index=True, nullable=False) # new / published / deactivated
-    time = db.Column(db.String(32), index=True, nullable=False)
+#    status = db.Column(db.String(10), index=True, nullable=False) # new / published / deactivated
 
-    def add(self, task):
-        # logic adding task
+    status = db.Column(db.Integer)
+    posting_time = db.Column(db.DateTime())
+
+    def create_message(self, task, posting_time):
+        self.taskId = task.id
+        self.posting_time = posting_time
+
         self.__commit()
 
     def change_status(self, status):

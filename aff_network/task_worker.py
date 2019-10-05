@@ -1,6 +1,7 @@
 from models import TaskQueue
 from models import Task
 from constants import *
+from sqlalchemy import and_, or_
 
 class TaskWorker():
     __instance = None
@@ -19,19 +20,18 @@ class TaskWorker():
         else:
             TaskWorker.__instance = self
 
-    def task_create(self, offerId):
-        tasks = Task(status='upproved', affilId=current_user.id, offerId=offerId)
-
-        return task
-
     def message_queue_create(self):
-        tasks = Task.query.filter(
-                Task.status == TASK_STATUS['APPROVED']
+        tasks = Task.query.filter( and_(
+                Task.status == TASK_STATUS['APPROVED'],
+                Task.task_type == TASK_TYPE['AUTOMATIC']
+        )
         ).limit(30).all()
 
         for task in tasks:
-            message_queue = MessageQueue(taskId=task.id, status='NEW', time=getTime)
-            #message_queue.add(task)
+            message_queue = MessageQueue()
+
+            message_queue.create_message(task, getTime())
+
             task.change_status(TASK_STATUS['HANDLED'])
 
         #return 0
@@ -46,12 +46,16 @@ class TaskWorker():
 
     def post_message(self):
         message_queues = MessageQueue.query.filter(
-                MessageQueue.status == MessageQueue_STATUS['NEW']
+                MessageQueue.status == MESSAGE_STATUS['NEW']
         ).limit(30).all()
+
         for message_queue in message_queues:
-            task = Task.query.filter_by(id=message_queue.taskId).first()          
-            offer = Offer.query.filter_by(id=task.offerId).first() 
+            task = message_queue.task
+
+            offer = task.offer
+
             link = offer.tgLink
+
             message = task.previevText + link
 
             #telegram.api : send_mesage(task.affilId, message)

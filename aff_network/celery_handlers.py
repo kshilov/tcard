@@ -6,7 +6,7 @@ from task_worker import TaskWorker
 def emit_task_create():
     try:
         task_worker = TaskWorker.getInstance()
-        task_worker.task_create()
+        task_worker.message_queue_create()
 
         app.logger.info("emit_task_create")
     except Exception as e:
@@ -36,5 +36,17 @@ def emit_task_delete():
         app.logger.info("emit_task_delete")
     except Exception as e:
         app.logger.info("emit_task_delete EXCEPTION traceback: {0}".format(traceback.format_exc()))
+
+    return True
+
+@celery.task
+def emit_post_message():
+    try:
+        task_worker = TaskWorker.getInstance()
+        task_worker.post_message()
+
+        app.logger.info("emit_post_message")
+    except Exception as e:
+        app.logger.info("emit_post_message EXCEPTION traceback: {0}".format(traceback.format_exc()))
 
     return True
