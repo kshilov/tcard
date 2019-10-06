@@ -50,16 +50,17 @@
             </fieldset>    
         </form>
     </div>
-    <ul class="list-group">
-        <li class="list-group-item list-group-item-light"><h2>Your Offers: </h2>
-        <table>
-            <tr>
-                {% for channel in current_user.channels %}
-                <td><h3>{{channel.tgUrl}} | </h3></td>
-                <td>{{current_user.channels[channel]}}</td>
-                {% endfor %}
-            </tr>
-        </table>
-        </li>
-    </ul>
+    <h2>Your Offers: </h2>
+    <li class="list-group-item list-group-item-light">
+    <table>
+        <tr>
+            {% for offer in current_user.offers %}
+                <ul class="list-group">
+                    <td><h3>Channel: {{offer.tgLink}} </h3></td>
+                    <td><h3><br>Category: {offer.categoryListAdv.category.title}</h3></td>
+                </li>
+            </ul>
+        {% endfor %}
+        </tr>
+    </table>
 {% endblock content %}

@@ -10,8 +10,6 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
-    #status = SelectField('Status',
-                        #choices=[('advertiser','advertiser'), ('affiliate','affiliate')])
     role = SelectField('Role',
                         choices=[('Advertiser','Advertiser'), ('Affiliate','Affiliate'), ('Moderator','Moderator'), ('Admin','Admin')])
     submit = SubmitField('Sign Up')
@@ -40,6 +38,7 @@ class ChangePassForm(FlaskForm):
 
 class AddChannelForm(FlaskForm):
     tgUrl = StringField('Telegram url of the channel', validators=[DataRequired()])
+    categoryListAff = SelectField('Category of the channel', coerce=int)
     submit = SubmitField('Add channel')
 
     def validate_channel(self, tgUrl):
@@ -52,7 +51,6 @@ class CreateOfferForm(FlaskForm):
     tgLink = StringField('Telegram url of the channel', validators=[DataRequired()])
     offerType = SelectField('Offer type',
                         choices=[('click','click'), ('subscribe','subscribe')])
-    #categoryListAdv = StringField('Category of the channel', validators=[DataRequired()])
     categoryListAdv = SelectField('Category of the channel', coerce=int)
     submit = SubmitField('Create offer')
 

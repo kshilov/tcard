@@ -18,6 +18,19 @@
                     {{ form.tgUrl(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
+            <div class="form-group">
+                {{ form.categoryListAff.label(class="form-control-label") }}
+                {% if form.categoryListAff.errors %}
+                    {{ form.categoryListAff(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.categoryListAff.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.categoryListAff(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
     	    <div class="form-group">
          	    {{ form.submit(class="btn btn-outline-info") }}
     	    </div>

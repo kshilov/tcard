@@ -70,13 +70,26 @@ def account():
 @app.route("/channel", methods=['GET', 'POST'])
 @login_required
 def channel():
+# to create a List of existing categories to choose one by Advertiser
+    formCategories = [(g.id, g.title) for g in Category.query.all()]
     form = AddChannelForm()
-    channel = Channel(tgUrl=form.tgUrl.data, status='active', partnerId=current_user.id)
+    form.categoryListAff.choices = formCategories
+
     if form.validate_on_submit():
-        db.session.add(channel)
-        db.session.commit()
-        flash('Channel added', 'success')
-        return redirect(url_for('channel'))
+        channel = Channel(tgUrl=form.tgUrl.data, status='active', partnerId=current_user.id)
+        if channel:
+            db.session.add(channel)
+            db.session.commit()
+        else:
+            flash('Please check Telegram URL', 'danger')
+        categoryListAff = CategoryListAff(categoryListType=form.categoryListAff.data, categoryId=form.categoryListAff.data, channelId=channel.id)
+        if categoryListAff:
+            db.session.add(categoryListAff)
+            db.session.commit()
+            flash('Channel added', 'success')
+            return redirect(url_for('channel'))
+        else:
+            flash('Please check Telegram URL', 'danger')
     
     return render_template('channel.html', title='Channel', form=form)
 
@@ -84,21 +97,29 @@ def channel():
 @app.route("/offer", methods=['GET', 'POST'])
 @login_required
 def offer():
-    # to create a List of existing categories to choose one
+# to create a List of existing categories to choose one by Advertiser
     formCategories = [(g.id, g.title) for g in Category.query.all()]
     form = CreateOfferForm()
     form.categoryListAdv.choices = formCategories
-
+    #Category.query.filter_by(id=offer.categoryList.categoryId).first().title
     price = 5
 
     if form.validate_on_submit():
-        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='inactive', advertId=current_user.id)
-        categoryListAdv = CategoryListAdv(categoryListType=form.categoryListType.data)
-        db.session.add(offer)
-        db.session.commit()
-        flash('Offer created', 'success')
-        return redirect(url_for('channel'))
-    return render_template('offer.html', title='Offer', form=form)
+        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='INACTIVE', advertId=current_user.id)
+        if offer:
+            db.session.add(offer)
+            db.session.commit()
+        else:
+            flash('Please check Telegram URL', 'danger')
+        categoryListAdv = CategoryListAdv(categoryListType=form.categoryListAdv.data, categoryId=form.categoryListAdv.data, offerId=offer.id)
+        if categoryListAdv:
+            db.session.add(categoryListAdv)
+            db.session.commit()
+            flash('Offer created', 'success')
+            return redirect(url_for('offer'))
+        else:
+            flash('Please check Telegram URL', 'danger')
+    return render_template('offer.html', title='Offer', form=form,)
 
 
 @app.route("/category", methods=['GET', 'POST'])

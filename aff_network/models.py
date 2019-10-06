@@ -56,7 +56,7 @@ class Offer(db.Model):
     status = db.Column(db.String, index=True, nullable=False) # active \ inactive
     advertId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     tasks = db.relationship('Task', backref='offer', lazy=True)
-    categoryList = db.relationship('CategoryListAdv', backref='offer', lazy=True)
+    categoryListAdv = db.relationship('CategoryListAdv', backref='offer', lazy=True)
 
     def __repr__(self):
         return '<Offer {}>'.format(self.tgLink)
@@ -97,7 +97,7 @@ class Category(db.Model):
     categoryListAff = db.relationship('CategoryListAff', backref='category', lazy=True)
 
     def __repr__(self):
-        return '<Category {}>'.format(self.tgUrl)
+        return '<Category {}>'.format(self.title)
 
 
 class CategoryListAdv(db.Model):
@@ -107,7 +107,7 @@ class CategoryListAdv(db.Model):
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
 
     def __repr__(self):
-        return '<CategoryListAdv {}>'.format(self.tgUrl)
+        return '<CategoryListAdv {}>'.format(self.categoryListType)
 
 
 class CategoryListAff(db.Model):
@@ -117,7 +117,7 @@ class CategoryListAff(db.Model):
     channelId = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=False)
 
     def __repr__(self):
-        return '<CategoryListAff {}>'.format(self.tgUrl)
+        return '<CategoryListAff {}>'.format(self.categoryListType)
 
 
 class MessageQueue(db.Model):
@@ -127,6 +127,9 @@ class MessageQueue(db.Model):
 
     status = db.Column(db.Integer)
     posting_time = db.Column(db.DateTime())
+
+    def __repr__(self):
+        return '<MessageQueue {}>'.format(self.taskId)
 
     def create_message(self, task, posting_time):
         self.taskId = task.id
