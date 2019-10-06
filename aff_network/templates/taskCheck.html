@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2>Tasks: </h2>
+    <li class="list-group-item list-group-item-light">
+    <table>
+        <tr>
+            {% for task in tasks %}
+                <ul class="list-group">
+                    <td><h3>Task: {{task.previevText}} </h3></td>
+                </ul>
+           {% endfor %}
+        </tr>
+    </table>
+    </li>
+{% endblock content %}

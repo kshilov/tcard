@@ -62,17 +62,25 @@
             <h3>Sidebar</h3>
             <p class='text-muted'>----------------------------------
               <ul class="list-group">
+                {% if current_user.role == 'Advertiser' %}
                 <li class="list-group-item list-group-item-light">
-                    {% if current_user.role == 'Advertiser' %}
-                        <a href="/offer">My offers</a>
-                    {% else %}
-                        <a href="/channel">My channels</a>
-                    {% endif %}
+                    <a href="/offer">My offers</a>
+                {% elif current_user.role == 'Affiliate'  %}
+                    <a href="/channel">My channels</a>   
                 </li>
+                {% endif %}
+                {% if current_user.role == 'Affiliate' %}
+                <li class="list-group-item list-group-item-light">
+                    <a href="/offerList">Offers</a></li>
+                </li>
+                {% endif %}
                 <li class="list-group-item list-group-item-light"><a href="/">My transactions</a></li>
                 {% if current_user.role == 'Moderator' %}
                 <li class="list-group-item list-group-item-light">
                     <a href="/category">Categories</a>
+                </li>
+                <li class="list-group-item list-group-item-light">
+                    <a href="/taskCheck">Tasks for check</a>
                 </li>
                 {% endif %}
               </ul>

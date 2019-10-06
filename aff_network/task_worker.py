@@ -20,7 +20,7 @@ class TaskWorker():
         else:
             TaskWorker.__instance = self
 
-    def message_queue_create(self):
+    def message_queue_create():
         tasks = Task.query.filter( and_(
                 Task.status == TASK_STATUS['APPROVED'],
                 Task.task_type == TASK_TYPE['AUTOMATIC']
@@ -36,14 +36,13 @@ class TaskWorker():
 
 
     def getTime():
-        return app.config.postTime
+        return constants.postTime
 
     def task_execute(self):
         pass
 
-#--------------------------------
 
-    def post_message(self):
+    def post_message():
         message_queues = MessageQueue.query.filter(
                 MessageQueue.status == MESSAGE_STATUS['NEW']
         ).limit(30).all()
@@ -58,6 +57,12 @@ class TaskWorker():
             #telegram.api : send_message(task.affilId, message)
 
             message_queue.change_status(MESSAGE_STATUS['PUBLISHED'])
+
+
+    def deactivate_offer():
+        offers = ''
+        for offer in offers:
+            pass
 
 
 

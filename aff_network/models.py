@@ -42,7 +42,7 @@ class Channel(db.Model):
     tgUrl = db.Column(db.String, index=True, unique=True, nullable=False)
     status = db.Column(db.String, index=True, nullable=False) # active \ inactive
     partnerId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    categoryList = db.relationship('CategoryListAff', backref='channel', lazy=True)
+    categoryListAff = db.relationship('CategoryListAff', backref='channel', lazy=True)
 
     def __repr__(self):
         return '<Channel {}>'.format(self.tgUrl)
@@ -61,16 +61,31 @@ class Offer(db.Model):
     def __repr__(self):
         return '<Offer {}>'.format(self.tgLink)
 
+    def change_status(self, status):
+        self.status = status
+        
+        self.__commit()
+
+    def __commit(self):
+        exist = Offer.query.filter_by(id=self.id).first()
+
+        if not exist:
+            db.session.add(self)
+        
+        db.session.commit()
+
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String, index=True, nullable=False) # upproved \ unupproved \ queued
-#   status = db.Column(db.Integer, default=0) # upproved \ unupproved \ queued
+
+    status = db.Column(db.Integer, index=True, default=0) # new \ approved \ queued \ paused \ inactive
+    taskType = db.Column(db.Integer)
+
     previevText = db.Column(db.String, index=True, nullable=False)
-    task_type = db.Column(db.Integer)
+
     affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
-    
+
     message_queues = db.relationship('MessageQueue', backref='task', lazy=True)
 
     def __repr__(self):

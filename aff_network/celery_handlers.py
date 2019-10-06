@@ -3,14 +3,14 @@ from global_celery_instances import celery
 from task_worker import TaskWorker
 
 @celery.task
-def emit_task_create():
+def emit_taskWorker_create():
     try:
         task_worker = TaskWorker.getInstance()
         task_worker.message_queue_create()
 
-        app.logger.info("emit_task_create")
+        app.logger.info("emit_taskWorker_create")
     except Exception as e:
-        app.logger.info("emit_task_worker EXCEPTION traceback: {0}".format(traceback.format_exc()))
+        app.logger.info("emit_taskWorker_create EXCEPTION traceback: {0}".format(traceback.format_exc()))
 
     return True
      

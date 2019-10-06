@@ -55,6 +55,13 @@ class CreateOfferForm(FlaskForm):
     submit = SubmitField('Create offer')
 
 
+class CreateOfferListForm(FlaskForm):
+    previevText = StringField('Telegram message of publication', validators=[DataRequired()])
+    taskType = SelectField('Publication type',
+                        choices=[(0,'AUTOMATIC'), (1,'MANUAL')]) # 0 - AUTOMATIC, 1 - MANUAL
+    #submit = SubmitField('Create offer')
+
+
 class AddCategoryForm(FlaskForm):
     title = StringField('Title of the category', validators=[DataRequired()])
     submit = SubmitField('Add category')

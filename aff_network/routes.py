@@ -6,6 +6,7 @@ from forms import *
 from global_web_instances import app, db, bcrypt
 import flask
 from celery_handlers import *
+from constants import *
 
 @app.route("/")
 
@@ -70,7 +71,7 @@ def account():
 @app.route("/channel", methods=['GET', 'POST'])
 @login_required
 def channel():
-# to create a List of existing categories to choose one by Advertiser
+# to create a List of existing categories to choose one by Affiliate
     formCategories = [(g.id, g.title) for g in Category.query.all()]
     form = AddChannelForm()
     form.categoryListAff.choices = formCategories
@@ -119,11 +120,28 @@ def offer():
             return redirect(url_for('offer'))
         else:
             flash('Please check Telegram URL', 'danger')
-    return render_template('offer.html', title='Offer', form=form,)
+    return render_template('offer.html', title='Offer', form=form)
+
+
+@app.route("/offerList", methods=['GET', 'POST'])
+@login_required
+#@aff
+def offerList():
+    #offers = Offer.query.filter_by(categoryListAdv.categoryId=current_user.channels.categoryList.categoryId).all()
+    offers=''
+    form = CreateOfferListForm()
+    if form.validate_on_submit():
+        #task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=...)
+        db.session.add(task)
+        db.session.commit()
+        flash('Offer accepted', 'success')
+        return redirect(url_for('offerList'))
+    return render_template('offerList.html', title='OfferList', form=form, offers=offers)
 
 
 @app.route("/category", methods=['GET', 'POST'])
 @login_required
+#@moderator
 def category():
     form = AddCategoryForm()
     allCategories = Category.query.all()
@@ -138,12 +156,19 @@ def category():
         #else: flash('Category already exist', 'danger')
     return render_template('category.html', title='Category', form=form, allCategories=allCategories)
 
-@app.route("/task/approve", methods=['GET', 'POST'])
+@app.route("/taskCheck", methods=['GET', 'POST'])
 @login_required
 #@moderator_only
-def task_approve():
-    pass
-
+def taskCheck():
+    #tasks = Offer.query.filter_by(categoryListAdv.categoryId=current_user.channels.categoryList.categoryId).all()
+    tasks=''
+    form = CreateOfferListForm()
+    if form.validate_on_submit():
+        #task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=...)
+        task.change_status(TASK_STATUS['APPROVED'])
+        flash('Task accepted', 'success')
+        return redirect(url_for('taskCheck'))
+    return render_template('taskCheck.html', title='taskCheck', form=form, tasks=tasks)
     # change status in Tasks table
 
     try:
