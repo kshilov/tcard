@@ -31,6 +31,19 @@
                     {{ form.offerType(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
+            <div class="form-group">
+                {{ form.categoryListAdv.label(class="form-control-label") }}
+                {% if form.categoryListAdv.errors %}
+                    {{ form.categoryListAdv(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.categoryListAdv.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.categoryListAdv(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
     	    <div class="form-group">
          	    {{ form.submit(class="btn btn-outline-info") }}
     	    </div>

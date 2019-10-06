@@ -10,10 +10,10 @@ def load_user(user_id):
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), index=True, unique=True, nullable=False)
-    password = db.Column(db.String(128), nullable=False)
-    role = db.Column(db.String(10), nullable=False) # advert. \ affil. \ moder. \ admin
-    status = db.Column(db.String(10), index=True, nullable=False) # active \ inactive
+    username = db.Column(db.String, index=True, unique=True, nullable=False)
+    password = db.Column(db.String, nullable=False)
+    role = db.Column(db.String, nullable=False) # advert. \ affil. \ moder. \ admin
+    status = db.Column(db.String, index=True, nullable=False) # active \ inactive
     channels = db.relationship('Channel', backref='user', lazy=True)
     offers = db.relationship('Offer', backref='user', lazy=True)
     tasks = db.relationship('Task', backref='user', lazy=True)
@@ -39,10 +39,10 @@ class User(db.Model, UserMixin):
 
 class Channel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    tgUrl = db.Column(db.String(32), index=True, unique=True, nullable=False)
-    status = db.Column(db.String(10), index=True, nullable=False) # active \ inactive
+    tgUrl = db.Column(db.String, index=True, unique=True, nullable=False)
+    status = db.Column(db.String, index=True, nullable=False) # active \ inactive
     partnerId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    categoryLists = db.relationship('CategoryList', backref='channel', lazy=True)
+    categoryList = db.relationship('CategoryListAff', backref='channel', lazy=True)
 
     def __repr__(self):
         return '<Channel {}>'.format(self.tgUrl)
@@ -50,13 +50,13 @@ class Channel(db.Model):
 
 class Offer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    tgLink = db.Column(db.String(32), index=True, unique=True, nullable=False)
-    offerType = db.Column(db.String(32), index=True, nullable=False) # click \ subscribe
+    tgLink = db.Column(db.String, index=True, unique=True, nullable=False)
+    offerType = db.Column(db.String, index=True, nullable=False) # click \ subscribe
     price = db.Column(db.Float, index=True, nullable=False)    
-    status = db.Column(db.String(10), index=True, nullable=False) # active \ inactive
+    status = db.Column(db.String, index=True, nullable=False) # active \ inactive
     advertId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     tasks = db.relationship('Task', backref='offer', lazy=True)
-    categoryLists = db.relationship('CategoryList', backref='offer', lazy=True)
+    categoryList = db.relationship('CategoryListAdv', backref='offer', lazy=True)
 
     def __repr__(self):
         return '<Offer {}>'.format(self.tgLink)
@@ -64,9 +64,9 @@ class Offer(db.Model):
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(10), index=True, nullable=False) # upproved \ unupproved \ queued
+    status = db.Column(db.String, index=True, nullable=False) # upproved \ unupproved \ queued
 #   status = db.Column(db.Integer, default=0) # upproved \ unupproved \ queued
-    previevText = db.Column(db.String(10), index=True, nullable=False)
+    previevText = db.Column(db.String, index=True, nullable=False)
     task_type = db.Column(db.Integer)
     affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
@@ -92,24 +92,33 @@ class Task(db.Model):
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(32), index=True, unique=True, nullable=False)
-    #categoryListId = db.Column(db.Integer, db.ForeignKey('categoryList.id'), nullable=False)
-    categoryLists = db.relationship('CategoryList', backref='category', lazy=True)
+    title = db.Column(db.String, index=True, unique=True, nullable=False)
+    categoryListAdv = db.relationship('CategoryListAdv', backref='category', lazy=True)
+    categoryListAff = db.relationship('CategoryListAff', backref='category', lazy=True)
 
     def __repr__(self):
         return '<Category {}>'.format(self.tgUrl)
 
 
-class CategoryList(db.Model):
+class CategoryListAdv(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    categoryListType = db.Column(db.String(32), index=True, nullable=False) # ???
-    #categories = db.relationship('Category', backref='categoryList', lazy=True)
+    categoryListType = db.Column(db.String, index=True, nullable=False) # ???
     categoryId = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
+
+    def __repr__(self):
+        return '<CategoryListAdv {}>'.format(self.tgUrl)
+
+
+class CategoryListAff(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    categoryListType = db.Column(db.String, index=True, nullable=False) # ???
+    categoryId = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     channelId = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=False)
 
     def __repr__(self):
-        return '<CategoryList {}>'.format(self.tgUrl)
+        return '<CategoryListAff {}>'.format(self.tgUrl)
+
 
 class MessageQueue(db.Model):
     id = db.Column(db.Integer, primary_key=True)

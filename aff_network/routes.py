@@ -1,8 +1,8 @@
 from flask import render_template, url_for, flash, redirect, request
 from global_web_instances import app, db, bcrypt
-from models import User, Task, Channel, Offer, Category, CategoryList
+from models import *
 from flask_login import login_user, current_user, logout_user, login_required
-from forms import RegistrationForm, LoginForm, ChangePassForm, AddChannelForm, CreateOfferForm, AddCategoryForm
+from forms import *
 from global_web_instances import app, db, bcrypt
 import flask
 from celery_handlers import *
@@ -84,11 +84,16 @@ def channel():
 @app.route("/offer", methods=['GET', 'POST'])
 @login_required
 def offer():
+    # to create a List of existing categories to choose one
+    formCategories = [(g.id, g.title) for g in Category.query.all()]
     form = CreateOfferForm()
-    #categoryList = 
+    form.categoryListAdv.choices = formCategories
+
     price = 5
+
     if form.validate_on_submit():
         offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='inactive', advertId=current_user.id)
+        categoryListAdv = CategoryListAdv(categoryListType=form.categoryListType.data)
         db.session.add(offer)
         db.session.commit()
         flash('Offer created', 'success')
@@ -128,5 +133,3 @@ def task_approve():
         # rollback status of a task
         
 
-
-htt

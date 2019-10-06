@@ -1,4 +1,4 @@
-from models import TaskQueue
+from models import MessageQueue
 from models import Task
 from constants import *
 from sqlalchemy import and_, or_
@@ -34,7 +34,6 @@ class TaskWorker():
 
             task.change_status(TASK_STATUS['HANDLED'])
 
-        #return 0
 
     def getTime():
         return app.config.postTime
@@ -56,9 +55,9 @@ class TaskWorker():
 
             message = task.previevText + link
 
-            #telegram.api : send_mesage(task.affilId, message)
+            #telegram.api : send_message(task.affilId, message)
 
-            message_queue.change_status(TASK_STATUS['PUBLISHED'])
+            message_queue.change_status(MESSAGE_STATUS['PUBLISHED'])
 
 
 

@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from models import User, Channel, Category, Task, CategoryList, Offer
+from models import *
 
 
 class RegistrationForm(FlaskForm):
@@ -52,6 +52,8 @@ class CreateOfferForm(FlaskForm):
     tgLink = StringField('Telegram url of the channel', validators=[DataRequired()])
     offerType = SelectField('Offer type',
                         choices=[('click','click'), ('subscribe','subscribe')])
+    #categoryListAdv = StringField('Category of the channel', validators=[DataRequired()])
+    categoryListAdv = SelectField('Category of the channel', coerce=int)
     submit = SubmitField('Create offer')
 
 
