@@ -59,7 +59,7 @@ class CreateOfferListForm(FlaskForm):
     previevText = StringField('Telegram message of publication', validators=[DataRequired()])
     taskType = SelectField('Publication type',
                         choices=[(0,'AUTOMATIC'), (1,'MANUAL')]) # 0 - AUTOMATIC, 1 - MANUAL
-    #submit = SubmitField('Create offer')
+    submit = SubmitField('Choose offer')
 
 
 class AddCategoryForm(FlaskForm):
@@ -70,3 +70,7 @@ class AddCategoryForm(FlaskForm):
         category = Category.query.filter_by(title=title.data).first()
         if category:
             raise ValidationError('That category is added. Please choose a different one.')
+
+
+class TaskCheckForm(FlaskForm):
+    submit = SubmitField('Accept task')

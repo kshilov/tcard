@@ -23,7 +23,7 @@ class TaskWorker():
     def message_queue_create():
         tasks = Task.query.filter( and_(
                 Task.status == TASK_STATUS['APPROVED'],
-                Task.task_type == TASK_TYPE['AUTOMATIC']
+                Task.taskType == TASK_TYPE['AUTOMATIC']
         )
         ).limit(30).all()
 
@@ -59,11 +59,8 @@ class TaskWorker():
             message_queue.change_status(MESSAGE_STATUS['PUBLISHED'])
 
 
-    def deactivate_offer():
-        offers = ''
-        for offer in offers:
-            pass
-
+    def deactivate_offer(offer_id):     
+        Task.query.filter_by(offerId=offer_id).update({'status': TASK_STATUS['PAUSED']})
 
 
 

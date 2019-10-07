@@ -1,15 +1,18 @@
 {% extends "layout.html" %}
 {% block content %}
     <h2>Tasks: </h2>
+    {% for task in tasks %}
     <li class="list-group-item list-group-item-light">
     <table>
         <tr>
-            {% for task in tasks %}
-                <ul class="list-group">
-                    <td><h3>Task: {{task.previevText}} </h3></td>
+                <ul class="list-group">  
+                    <h3>Text: {{task.previevText}}</h3>
+    	            <div class="form-group">
+         	        <a href="taskCheck?task_id=<{{task.id}}>">{{ form.submit(class="btn btn-outline-info") }}</a>
+    	            </div>
                 </ul>
-           {% endfor %}
         </tr>
     </table>
     </li>
+    {% endfor %}
 {% endblock content %}

@@ -50,12 +50,16 @@ class Channel(db.Model):
 
 class Offer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     tgLink = db.Column(db.String, index=True, unique=True, nullable=False)
     offerType = db.Column(db.String, index=True, nullable=False) # click \ subscribe
+
     price = db.Column(db.Float, index=True, nullable=False)    
     status = db.Column(db.String, index=True, nullable=False) # active \ inactive
+
     advertId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     tasks = db.relationship('Task', backref='offer', lazy=True)
+
     categoryListAdv = db.relationship('CategoryListAdv', backref='offer', lazy=True)
 
     def __repr__(self):
@@ -79,7 +83,7 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     status = db.Column(db.Integer, index=True, default=0) # new \ approved \ queued \ paused \ inactive
-    taskType = db.Column(db.Integer)
+    taskType = db.Column(db.Integer, default=0)
 
     previevText = db.Column(db.String, index=True, nullable=False)
 

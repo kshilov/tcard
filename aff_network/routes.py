@@ -55,6 +55,8 @@ def logout():
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
+    #db.drop_all()
+    #db.create_all()
     form = ChangePassForm()
     if form.validate_on_submit():
         user = current_user
@@ -106,7 +108,7 @@ def offer():
     price = 5
 
     if form.validate_on_submit():
-        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='INACTIVE', advertId=current_user.id)
+        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='ACTIVE', advertId=current_user.id)
         if offer:
             db.session.add(offer)
             db.session.commit()
@@ -127,11 +129,20 @@ def offer():
 @login_required
 #@aff
 def offerList():
-    #offers = Offer.query.filter_by(categoryListAdv.categoryId=current_user.channels.categoryList.categoryId).all()
-    offers=''
+    #offers = Offer.query.filter_by(categoryListAdv[0].categoryId=current_user.channels.categoryList[0].categoryId).all()
+    offersAll = Offer.query.all()
+    offers = list()
+    for offer in offersAll:
+        categoryAdv = offer.categoryListAdv
+        channelsAff = current_user.channels
+        for channel in channelsAff:
+            categoryAff = channel.categoryListAff
+            if categoryAff[0].categoryId == categoryAdv[0].categoryId:
+                offers.append(offer)
     form = CreateOfferListForm()
     if form.validate_on_submit():
-        #task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=...)
+        offer_id = request.args.get('offer_id')
+        task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
         db.session.add(task)
         db.session.commit()
         flash('Offer accepted', 'success')
@@ -160,15 +171,14 @@ def category():
 @login_required
 #@moderator_only
 def taskCheck():
-    #tasks = Offer.query.filter_by(categoryListAdv.categoryId=current_user.channels.categoryList.categoryId).all()
-    tasks=''
-    form = CreateOfferListForm()
+    tasks = Task.query.all()
+    form = TaskCheckForm()
     if form.validate_on_submit():
         #task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=...)
         task.change_status(TASK_STATUS['APPROVED'])
         flash('Task accepted', 'success')
         return redirect(url_for('taskCheck'))
-    return render_template('taskCheck.html', title='taskCheck', form=form, tasks=tasks)
+    return render_template('taskCheck.html', title='TaskCheck', form=form, tasks=tasks)
     # change status in Tasks table
 
     try:
