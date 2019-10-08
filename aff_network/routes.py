@@ -140,6 +140,7 @@ def offerList():
             if categoryAff[0].categoryId == categoryAdv[0].categoryId:
                 offers.append(offer)
     form = CreateOfferListForm()
+    #print('This is standard output', file=sys.stdout)
     if form.validate_on_submit():
         offer_id = request.args.get('offer_id')
         task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)

@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
+    <div class="content-section">
+    <form method="POST" action="">
+            {{ form.hidden_tag() }}
+        <fieldset class="form-group">
             <legend class="border-bottom mb-4">Choose publication parameters</legend>
             <div class="form-group">
                 {{ form.previevText.label(class="form-control-label") }}
@@ -27,6 +31,8 @@
                     {{ form.taskType(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
+        </fieldset>
+    </form>
     <h2>Offers: </h2>
     {% for offer in offers %}
     <li class="list-group-item list-group-item-light">
@@ -36,11 +42,12 @@
                     <h3>Channel: {{offer.tgLink}} </h3>
                     <h3>Category: {{offer.categoryListAdv[0].category.title}}</h3>
     	            <div class="form-group">
-         	        <a href="offerList?offer_id=<{{offer.id}}>">{{ form.submit(class="btn btn-outline-info") }}</a>
+         	        <a href="/offerList?offer_id={{offer.id}}">{{ form.submit(class="btn btn-outline-info") }}</a>
     	            </div>
                 </ul>
         </tr>
     </table>
     </li>
     {% endfor %}
+    </div>
 {% endblock content %}

@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
     <h2>Tasks: </h2>
     {% for task in tasks %}
     <li class="list-group-item list-group-item-light">
@@ -15,4 +19,7 @@
     </table>
     </li>
     {% endfor %}
+            </fieldset>
+        </form>
+    </div>
 {% endblock content %}

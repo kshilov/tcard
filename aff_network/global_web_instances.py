@@ -8,6 +8,10 @@ from flask_sslify import SSLify
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
+import sys
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 #setup logging

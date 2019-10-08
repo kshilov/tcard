@@ -83,7 +83,7 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     status = db.Column(db.Integer, index=True, default=0) # new \ approved \ queued \ paused \ inactive
-    taskType = db.Column(db.Integer, default=0)
+    taskType = db.Column(db.String, default=0)
 
     previevText = db.Column(db.String, index=True, nullable=False)
 
