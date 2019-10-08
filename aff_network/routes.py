@@ -108,7 +108,7 @@ def offer():
     price = 5
 
     if form.validate_on_submit():
-        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='ACTIVE', advertId=current_user.id)
+        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status=OFFER_STATUS['ACTIVE'], advertId=current_user.id)
         if offer:
             db.session.add(offer)
             db.session.commit()
@@ -130,7 +130,7 @@ def offer():
 #@aff
 def offerList():
     #offers = Offer.query.filter_by(categoryListAdv[0].categoryId=current_user.channels.categoryList[0].categoryId).all()
-    offersAll = Offer.query.all()
+    offersAll = Offer.query.filter_by(status=OFFER_STATUS['ACTIVE']).all()
     offers = list()
     for offer in offersAll:
         categoryAdv = offer.categoryListAdv
@@ -144,10 +144,13 @@ def offerList():
     if form.validate_on_submit():
         offer_id = request.args.get('offer_id')
         task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
-        db.session.add(task)
-        db.session.commit()
-        flash('Offer accepted', 'success')
-        return redirect(url_for('offerList'))
+        if task:
+            db.session.add(task)
+            db.session.commit()
+            flash('Offer accepted', 'success')
+            return redirect(url_for('offerList'))
+        else:
+            flash('Offer error', 'danger')
     return render_template('offerList.html', title='OfferList', form=form, offers=offers)
 
 
@@ -172,15 +175,23 @@ def category():
 @login_required
 #@moderator_only
 def taskCheck():
-    tasks = Task.query.all()
+    tasks = Task.query.filter_by(status=TASK_STATUS['NEW']).all()
     form = TaskCheckForm()
     if form.validate_on_submit():
-        #task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=...)
-        task.change_status(TASK_STATUS['APPROVED'])
+        #task_id = request.args.get('task_id')
+        #task_id = 1
+        #task = Task.query.filter_by(id=task_id).first()
+        #task.change_status(TASK_STATUS['APPROVED'])
+        
+        taskWorker = TaskWorker()
+        taskWorker.getInstance()
+        taskWorker.message_queue_create()
+        taskWorker.post_messages()
+
         flash('Task accepted', 'success')
         return redirect(url_for('taskCheck'))
     return render_template('taskCheck.html', title='TaskCheck', form=form, tasks=tasks)
-    # change status in Tasks table
+    # change status in Tasks table****
 
     try:
         emit_task_create.apply_async()

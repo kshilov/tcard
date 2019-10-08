@@ -55,7 +55,7 @@ class Offer(db.Model):
     offerType = db.Column(db.String, index=True, nullable=False) # click \ subscribe
 
     price = db.Column(db.Float, index=True, nullable=False)    
-    status = db.Column(db.String, index=True, nullable=False) # active \ inactive
+    status = db.Column(db.Integer, index=True, nullable=False) # active \ inactive
 
     advertId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     tasks = db.relationship('Task', backref='offer', lazy=True)
@@ -152,6 +152,7 @@ class MessageQueue(db.Model):
 
     def create_message(self, task, posting_time):
         self.taskId = task.id
+        self.status = 0
         self.posting_time = posting_time
 
         self.__commit()

@@ -3,6 +3,11 @@ from models import Task
 from constants import *
 from sqlalchemy import and_, or_
 
+import telebot 
+from telebot import types
+
+bot = telebot.TeleBot(botId)
+
 class TaskWorker():
     __instance = None
 
@@ -20,7 +25,7 @@ class TaskWorker():
         else:
             TaskWorker.__instance = self
 
-    def message_queue_create():
+    def message_queue_create(self):
         tasks = Task.query.filter( and_(
                 Task.status == TASK_STATUS['APPROVED'],
                 Task.taskType == TASK_TYPE['AUTOMATIC']
@@ -30,19 +35,16 @@ class TaskWorker():
         for task in tasks:
             message_queue = MessageQueue()
 
-            message_queue.create_message(task, getTime())
+            message_queue.create_message(task, postTime)
 
-            task.change_status(TASK_STATUS['HANDLED'])
-
-
-    def getTime():
-        return constants.postTime
-
-    def task_execute(self):
-        pass
+            task.change_status(TASK_STATUS['QUEUED'])
 
 
-    def post_message():
+    #def task_execute(self):
+        #pass
+
+
+    def post_messages(self):
         message_queues = MessageQueue.query.filter(
                 MessageQueue.status == MESSAGE_STATUS['NEW']
         ).limit(30).all()
@@ -54,12 +56,14 @@ class TaskWorker():
 
             message = task.previevText + link
 
-            #telegram.api : send_message(task.affilId, message)
+            chatId = -1001321811797
+            #chatId = task.affilId
+            bot.send_message(chatId, message, 1)
 
             message_queue.change_status(MESSAGE_STATUS['PUBLISHED'])
 
 
-    def deactivate_offer(offer_id):     
+    def deactivate_offer(self, offer_id):     
         Task.query.filter_by(offerId=offer_id).update({'status': TASK_STATUS['PAUSED']})
 
 

@@ -17,4 +17,13 @@ MESSAGE_STATUS = {
     'DEACTIVATED' : 2
 }
 
-postTime = '17:48:56 19.10.2019'
+OFFER_STATUS = {
+    'INACTIVE' : 0,
+    'ACTIVE' : 1
+}
+
+from datetime import datetime
+#postTime = '2019-10-11 18:22:56'
+postTime = datetime(2019, 10, 11, 18, 22, 56)
+
+botId = '596029472:AAGMmAiJ6Oj7Kg3-wgn9HfGTbbtQSkXJhz8'
