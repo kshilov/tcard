@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from models import *
+from constants import *
 
 
 class RegistrationForm(FlaskForm):
@@ -11,7 +12,7 @@ class RegistrationForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
     role = SelectField('Role',
-                        choices=[('Advertiser','Advertiser'), ('Affiliate','Affiliate'), ('Moderator','Moderator'), ('Admin','Admin')])
+                        choices=[(ROLE['ADVERTISER'],'ADVERTISER'), (ROLE['AFFILIATE'],'AFFILIATE'), (ROLE['MODERATOR'],'MODERATOR'), (ROLE['ADMIN'],'ADMIN')])
     submit = SubmitField('Sign Up')
 
     def validate_username(self, username):
@@ -50,7 +51,7 @@ class AddChannelForm(FlaskForm):
 class CreateOfferForm(FlaskForm):
     tgLink = StringField('Telegram url of the channel', validators=[DataRequired()])
     offerType = SelectField('Offer type',
-                        choices=[('click','click'), ('subscribe','subscribe')])
+                        choices=[(OFFER_TYPE['CLICK'],'CLICK'), (OFFER_TYPE['SUBSCRIBE'],'SUBSCRIBE')])
     categoryListAdv = SelectField('Category of the channel', coerce=int)
     submit = SubmitField('Create offer')
 
@@ -58,7 +59,7 @@ class CreateOfferForm(FlaskForm):
 class CreateOfferListForm(FlaskForm):
     previevText = StringField('Telegram message of publication', validators=[DataRequired()])
     taskType = SelectField('Publication type',
-                        choices=[('0','AUTOMATIC'), ('1','MANUAL')]) # 0 - AUTOMATIC, 1 - MANUAL
+                        choices=[(TASK_TYPE['AUTOMATIC'],'AUTOMATIC'), (TASK_TYPE['MANUAL'],'MANUAL')])
     submit = SubmitField('choose offer')
 
 

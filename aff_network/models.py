@@ -5,18 +5,22 @@ from flask_login import UserMixin
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
    
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
+
     username = db.Column(db.String, index=True, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
-    role = db.Column(db.String, nullable=False) # advert. \ affil. \ moder. \ admin
+
+    role = db.Column(db.Integer, nullable=False) # advert. \ affil. \ moder. \ admin
     status = db.Column(db.String, index=True, nullable=False) # active \ inactive
+
     channels = db.relationship('Channel', backref='user', lazy=True)
     offers = db.relationship('Offer', backref='user', lazy=True)
+
     tasks = db.relationship('Task', backref='user', lazy=True)
+    transactions = db.relationship('Transaction', backref='user', lazy=True)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -36,11 +40,12 @@ class User(db.Model, UserMixin):
         db.session.commit()
 
 
-
 class Channel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     tgUrl = db.Column(db.String, index=True, unique=True, nullable=False)
     status = db.Column(db.String, index=True, nullable=False) # active \ inactive
+
     partnerId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     categoryListAff = db.relationship('CategoryListAff', backref='channel', lazy=True)
 
@@ -111,7 +116,9 @@ class Task(db.Model):
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     title = db.Column(db.String, index=True, unique=True, nullable=False)
+
     categoryListAdv = db.relationship('CategoryListAdv', backref='category', lazy=True)
     categoryListAff = db.relationship('CategoryListAff', backref='category', lazy=True)
 
@@ -121,8 +128,10 @@ class Category(db.Model):
 
 class CategoryListAdv(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     categoryListType = db.Column(db.String, index=True, nullable=False) # ???
     categoryId = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
 
     def __repr__(self):
@@ -131,7 +140,9 @@ class CategoryListAdv(db.Model):
 
 class CategoryListAff(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     categoryListType = db.Column(db.String, index=True, nullable=False) # ???
+
     categoryId = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     channelId = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=False)
 
@@ -141,10 +152,10 @@ class CategoryListAff(db.Model):
 
 class MessageQueue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    taskId = db.Column(db.Integer, db.ForeignKey('task.id'))
-#    status = db.Column(db.String(10), index=True, nullable=False) # new / published / deactivated
 
-    status = db.Column(db.Integer)
+    taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+
+    status = db.Column(db.Integer) # new / published / deactivated
     posting_time = db.Column(db.DateTime())
 
     def __repr__(self):
@@ -164,6 +175,61 @@ class MessageQueue(db.Model):
 
     def __commit(self):
         exist = MessageQueue.query.filter_by(id=self.id).first()
+
+        if not exist:
+            db.session.add(self)
+        
+        db.session.commit()
+
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    taskId = db.Column(db.Integer, db.ForeignKey('task.id')
+
+    affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    advId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    transaction_time = db.Column(db.DateTime(), nullable=False)
+    userTgId = db.Column(db.String, index=True, nullable=False)
+
+    adv_amount = db.Column(db.Float, index=True, nullable=False)
+    aff_amount = db.Column(db.Float, index=True, nullable=False)
+    user_amount = db.Column(db.Float, index=True, nullable=False)
+
+    currency = db.Column(db.Integer, index=True, nullable=False)
+    transactionType = db.Column(db.Integer, index=True, nullable=False) # deposit \ withdrow
+    actionType = db.Column(db.Integer, index=True, nullable=False) # click \ subscribe = offerType
+
+
+    def __repr__(self):
+        return '<Transaction {}>'.format(self.taskId)
+
+    def create_transaction(self, task, transaction_time, userTgId, transactionType, actionType):
+        self.taskId = task.id
+
+        self.affilId = task.affilId
+        self.advId = task.offer.advertId
+
+        self.transaction_time = transaction_time
+        self.userTgId = userTgId
+
+        self.adv_amount = TRANSACTION_TYPE['ADVERTISER']
+        self.aff_amount = TRANSACTION_TYPE['AFFILIATE']
+        self.user_amount = TRANSACTION_TYPE['USER']
+       
+        self.transactionType = transactionType
+        self.actionType = actionType
+
+        self.__commit()
+
+    def change_status(self, status):
+        self.status = status
+        
+        self.__commit()
+
+    def __commit(self):
+        exist = Transaction.query.filter_by(id=self.id).first()
 
         if not exist:
             db.session.add(self)

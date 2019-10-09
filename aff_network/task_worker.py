@@ -52,7 +52,8 @@ class TaskWorker():
         for message_queue in message_queues:
             task = message_queue.task
             offer = task.offer
-            link = offer.tgLink
+            # link in private chat with Bot
+            link = botLink
 
             message = task.previevText + link
 
@@ -65,6 +66,7 @@ class TaskWorker():
 
     def deactivate_offer(self, offer_id):     
         Task.query.filter_by(offerId=offer_id).update({'status': TASK_STATUS['PAUSED']})
+        db.session.commit()
 
 
 

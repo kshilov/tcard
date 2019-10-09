@@ -201,3 +201,24 @@ def taskCheck():
         # rollback status of a task
         
 
+@app.route("/action", methods=['GET', 'POST'])
+def action():
+    task_id = request.args.get('task_id')
+    user_id = request.args.get('user_id')
+
+    transactionType = TRANSACTION_TYPE['WITHDROW']
+    actionType = OFFER_TYPE['CLICK']
+
+    # maybe add here service to short tgLink
+    link = Task.query.filter_by(id=task_id).first().offer.tgLink
+
+    # celery
+    actionWorker = ActionWorker()
+    actionWorker.getInstance()
+    actionWorker.action_create(task_id, user_id, transactionType, actionType)
+
+    return redirect(url_for('link'))
+
+
+
+

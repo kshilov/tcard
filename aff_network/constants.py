@@ -1,3 +1,10 @@
+ROLE = {
+     'ADVERTISER' : 0,
+     'AFFILIATE' : 1,
+     'MODERATOR' : 2,
+     'ADMIN' : 3
+}
+
 TASK_STATUS = {
     'NEW' : 0,
     'APPROVED' : 1,
@@ -22,8 +29,27 @@ OFFER_STATUS = {
     'ACTIVE' : 1
 }
 
+OFFER_TYPE = {
+    'CLICK'  : 0,
+    'SUBSCRIBE' : 1
+}
+
+TRANSACTION_TYPE = {
+    'WITHDROW'  : 0,
+    'DEPOSIT' : 1
+}
+
+TRANSACTION_AMOUNT = {
+    'ADVERTISER'  : 10,
+    'AFFILIATE' : 7,
+    'USER' : 1
+}
+
 from datetime import datetime
 #postTime = '2019-10-11 18:22:56'
 postTime = datetime(2019, 10, 11, 18, 22, 56)
 
 botId = '596029472:AAGMmAiJ6Oj7Kg3-wgn9HfGTbbtQSkXJhz8'
+
+botLink = ''
+actionLink = 'http://127.0.0.1:5000/action'
