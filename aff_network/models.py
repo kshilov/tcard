@@ -1,9 +1,11 @@
-from global_web_instances import db, login_manager
+from global_web_instances import db, login_manager, bcrypt
 from flask_login import UserMixin
 
 
 @login_manager.user_loader
 def load_user(user_id):
+    #db.drop_all()
+    #db.create_all()
     return User.query.get(int(user_id))
    
 
@@ -20,7 +22,10 @@ class User(db.Model, UserMixin):
     offers = db.relationship('Offer', backref='user', lazy=True)
 
     tasks = db.relationship('Task', backref='user', lazy=True)
-    transactions = db.relationship('Transaction', backref='user', lazy=True)
+
+    # tak kak nel'zya ssilat'sya na 2 polya odnoy tablitsi
+    transactionsAdv = db.relationship('Transaction', backref='userAdv', foreign_keys='Transaction.advId', lazy=True)
+    transactionsAff = db.relationship('Transaction', backref='userAff', foreign_keys='Transaction.affId', lazy=True)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -185,9 +190,9 @@ class MessageQueue(db.Model):
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    taskId = db.Column(db.Integer, db.ForeignKey('task.id')
+    taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
 
-    affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    affId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     advId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     transaction_time = db.Column(db.DateTime(), nullable=False)
@@ -208,7 +213,7 @@ class Transaction(db.Model):
     def create_transaction(self, task, transaction_time, userTgId, transactionType, actionType):
         self.taskId = task.id
 
-        self.affilId = task.affilId
+        self.affId = task.affilId
         self.advId = task.offer.advertId
 
         self.transaction_time = transaction_time
@@ -217,7 +222,8 @@ class Transaction(db.Model):
         self.adv_amount = TRANSACTION_TYPE['ADVERTISER']
         self.aff_amount = TRANSACTION_TYPE['AFFILIATE']
         self.user_amount = TRANSACTION_TYPE['USER']
-       
+
+        self.currency = TRANSACTION_CURRENCY['GRAM']
         self.transactionType = transactionType
         self.actionType = actionType
 

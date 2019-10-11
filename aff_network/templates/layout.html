@@ -62,21 +62,21 @@
             <h3>Sidebar</h3>
             <p class='text-muted'>----------------------------------
               <ul class="list-group">
-                {% if current_user.role == 'Advertiser' %}
+                {% if current_user.role == 'ADVERTISER' %}
                 <li class="list-group-item list-group-item-light">
                     <a href="/offer">My offers</a>
-                {% elif current_user.role == 'Affiliate'  %}
+                {% elif current_user.role == 'AFFILIATE'  %}
                 <li class="list-group-item list-group-item-light">
                     <a href="/channel">My channels</a>   
                 </li>
                 {% endif %}
-                {% if current_user.role == 'Affiliate' %}
+                {% if current_user.role == 'AFFILIATE' %}
                 <li class="list-group-item list-group-item-light">
                     <a href="/offerList">Offers</a></li>
                 </li>
                 {% endif %}
-                <li class="list-group-item list-group-item-light"><a href="/">My transactions</a></li>
-                {% if current_user.role == 'Moderator' %}
+                <li class="list-group-item list-group-item-light"><a href="/transactions">My transactions</a></li>
+                {% if current_user.role == 'MODERATOR' %}
                 <li class="list-group-item list-group-item-light">
                     <a href="/category">Categories</a>
                 </li>

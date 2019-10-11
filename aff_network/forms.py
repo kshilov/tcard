@@ -12,7 +12,7 @@ class RegistrationForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
     role = SelectField('Role',
-                        choices=[(ROLE['ADVERTISER'],'ADVERTISER'), (ROLE['AFFILIATE'],'AFFILIATE'), (ROLE['MODERATOR'],'MODERATOR'), (ROLE['ADMIN'],'ADMIN')])
+                        choices=[('ADVERTISER','ADVERTISER'), ('AFFILIATE','AFFILIATE'), ('MODERATOR','MODERATOR'), ('ADMIN','ADMIN')])
     submit = SubmitField('Sign Up')
 
     def validate_username(self, username):
@@ -51,7 +51,7 @@ class AddChannelForm(FlaskForm):
 class CreateOfferForm(FlaskForm):
     tgLink = StringField('Telegram url of the channel', validators=[DataRequired()])
     offerType = SelectField('Offer type',
-                        choices=[(OFFER_TYPE['CLICK'],'CLICK'), (OFFER_TYPE['SUBSCRIBE'],'SUBSCRIBE')])
+                        choices=[('CLICK','CLICK'), ('SUBSCRIBE','SUBSCRIBE')])
     categoryListAdv = SelectField('Category of the channel', coerce=int)
     submit = SubmitField('Create offer')
 
@@ -59,7 +59,7 @@ class CreateOfferForm(FlaskForm):
 class CreateOfferListForm(FlaskForm):
     previevText = StringField('Telegram message of publication', validators=[DataRequired()])
     taskType = SelectField('Publication type',
-                        choices=[(TASK_TYPE['AUTOMATIC'],'AUTOMATIC'), (TASK_TYPE['MANUAL'],'MANUAL')])
+                        choices=[('AUTOMATIC','AUTOMATIC'), ('MANUAL','MANUAL')])
     submit = SubmitField('choose offer')
 
 
@@ -75,3 +75,5 @@ class AddCategoryForm(FlaskForm):
 
 class TaskCheckForm(FlaskForm):
     submit = SubmitField('Accept task')
+
+

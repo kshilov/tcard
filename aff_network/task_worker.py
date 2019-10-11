@@ -39,6 +39,10 @@ class TaskWorker():
 
             task.change_status(TASK_STATUS['QUEUED'])
 
+            if task.taskType == 'MANUAL':
+                # send link in private chat to MANUAL publishing
+                bot.send_message(task.user.username, botLink, 1)
+
 
     #def task_execute(self):
         #pass
@@ -57,15 +61,23 @@ class TaskWorker():
 
             message = task.previevText + link
 
-            chatId = -1001321811797
-            #chatId = task.affilId
-            bot.send_message(chatId, message, 1)
+            # send msg in all channels
+            channels = Channel.query.filter(and_(partnerId=task.affilId, status='active')).all()
+            for channel in channels: 
+                if channel.categoryListAff.category.id == task.offer.categoryListAdv.category.id:
+                    chatId = -1001321811797 # test
+                    #chatId = channel.tgUrl
+                    bot.send_message(chatId, message, 1)
 
             message_queue.change_status(MESSAGE_STATUS['PUBLISHED'])
-
+ 
 
     def deactivate_offer(self, offer_id):     
-        Task.query.filter_by(offerId=offer_id).update({'status': TASK_STATUS['PAUSED']})
+        tasks = Task.query.filter_by(offerId=offer_id).update({'status': TASK_STATUS['PAUSED']}).all()
+        Offer.query.filter_by(id=offer_id).update({'status': OFFER_STATUS['INACTIVE']})
+        for task in tasks:
+            MessageQueue.query.filter_by(taskId=task.id).first().change_status(MESSAGE_STATUS['DEACTIVATED'])
+            
         db.session.commit()
 
 

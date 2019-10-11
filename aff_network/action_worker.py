@@ -1,5 +1,4 @@
-from models import MessageQueue
-from models import Action
+from models import Action, Task, MessageQueue, Transaction
 from constants import *
 from sqlalchemy import and_, or_
 
@@ -27,14 +26,17 @@ class ActionWorker():
         else:
             ActionWorker.__instance = self
 
-    def action_create(self, task_id, user_id, transactionType, actionType):
+    def create_transaction(self, task_id, user_id, transactionType, actionType):
         task = Task.query.filter_by(id=task_id).first()
 
         transaction_time = datetime.now()
-        transaction = Transaction()
-        transaction.create_transaction(task, transaction_time, user_id, transactionType, actionType)
+
+        if task.offer.status == OFFER_STATUS['ACTIVE']:
+            transaction = Transaction()
+            transaction.create_transaction(task, transaction_time, user_id, transactionType, actionType)
 
 
+        
 
 
 

@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2>Your account: {{ balance }}</h2>
+    {% for transaction in transactions %}
+    <li class="list-group-item list-group-item-light">
+    <table>
+        <tr>
+                <ul class="list-group">  
+                    <h3>ID: {{ transaction.id }} </h3>
+                    <h3>Time: {{ transaction.transaction_time }}</h3>
+                </ul>
+        </tr>
+    </table>
+    </li>
+    {% endfor %}
+{% endblock content %}

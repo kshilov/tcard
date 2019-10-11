@@ -7,6 +7,7 @@ from global_web_instances import app, db, bcrypt
 import flask
 from celery_handlers import *
 from constants import *
+from balance_worker import *
 
 @app.route("/")
 
@@ -22,7 +23,9 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, password=hashed_password, role=form.role.data, status='active')
+        # how does it work with jinja2?
+        #user = User(username=form.username.data, password=hashed_password, role=ROLE[form.role.data], status=USER_STATUS['ACTIVE'])
+        user = User(username=form.username.data, password=hashed_password, role=form.role.data, status='ACTIVE')
         db.session.add(user)
         db.session.commit()
         flash('Your account has been created! You are now able to log in', 'success')
@@ -55,8 +58,6 @@ def logout():
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
-    #db.drop_all()
-    #db.create_all()
     form = ChangePassForm()
     if form.validate_on_submit():
         user = current_user
@@ -108,7 +109,7 @@ def offer():
     price = 5
 
     if form.validate_on_submit():
-        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status=OFFER_STATUS['ACTIVE'], advertId=current_user.id)
+        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='ACTIVE', advertId=current_user.id)
         if offer:
             db.session.add(offer)
             db.session.commit()
@@ -130,7 +131,7 @@ def offer():
 #@aff
 def offerList():
     #offers = Offer.query.filter_by(categoryListAdv[0].categoryId=current_user.channels.categoryList[0].categoryId).all()
-    offersAll = Offer.query.filter_by(status=OFFER_STATUS['ACTIVE']).all()
+    offersAll = Offer.query.filter_by(status='ACTIVE').all()
     offers = list()
     for offer in offersAll:
         categoryAdv = offer.categoryListAdv
@@ -143,6 +144,7 @@ def offerList():
     #print('This is standard output', file=sys.stdout)
     if form.validate_on_submit():
         offer_id = request.args.get('offer_id')
+        #offer_id = 2 # test
         task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
         if task:
             db.session.add(task)
@@ -179,10 +181,11 @@ def taskCheck():
     form = TaskCheckForm()
     if form.validate_on_submit():
         #task_id = request.args.get('task_id')
-        #task_id = 1
-        #task = Task.query.filter_by(id=task_id).first()
-        #task.change_status(TASK_STATUS['APPROVED'])
-        
+        task_id = 1 # test
+        task = Task.query.filter_by(id=task_id).first()
+        task.change_status(TASK_STATUS['APPROVED'])
+
+        # gde eto vizivat'?
         taskWorker = TaskWorker()
         taskWorker.getInstance()
         taskWorker.message_queue_create()
@@ -220,5 +223,19 @@ def action():
     return redirect(url_for('link'))
 
 
+@app.route("/transactions", methods=['GET', 'POST'])
+@login_required
+def transactions():
+    balanceWorker = BalanceWorker()
+    balanceWorker.getInstance()
+    balance = balanceWorker.get_balance(current_user.id)
+    if current_user.status == 'ADVERTISER':
+        transactions = Transaction.query().filter_by(advId=g.id).limit(30).all()
+    elif current_user.status == 'AFFILIATE':
+        transactions = Transaction.query().filter_by(affId=g.id).limit(30).all()
+    else:
+        transactions = Transaction.query().limit(30).all()
+
+    return render_template('transactions.html', title='Transactions', form=form, balance=balance, transactions=transactions)
 
 

@@ -1,8 +1,15 @@
+# depricated
 ROLE = {
      'ADVERTISER' : 0,
      'AFFILIATE' : 1,
      'MODERATOR' : 2,
      'ADMIN' : 3
+}
+
+# depricated
+USER_STATUS = {
+     'INACTIVE' : 0,
+     'ACTIVE' : 1
 }
 
 TASK_STATUS = {
@@ -43,6 +50,13 @@ TRANSACTION_AMOUNT = {
     'ADVERTISER'  : 10,
     'AFFILIATE' : 7,
     'USER' : 1
+}
+
+TRANSACTION_CURRENCY = {
+    'GRAM'  : 0,
+    'USD' : 1,
+    'EUR' : 2,
+    'RUB' : 3
 }
 
 from datetime import datetime
