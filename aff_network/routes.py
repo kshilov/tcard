@@ -206,19 +206,14 @@ def taskCheck():
 
 @app.route("/action", methods=['GET', 'POST'])
 def action():
+    # /action/?task_id=1&?user_id=1
     task_id = request.args.get('task_id')
-    user_id = request.args.get('user_id')
+    user_tg_id = request.args.get('user_id')
 
-    transactionType = TRANSACTION_TYPE['WITHDROW']
-    actionType = OFFER_TYPE['CLICK']
+    task = Task.query.filter_by(id=task_id).first()
 
-    # maybe add here service to short tgLink
-    link = Task.query.filter_by(id=task_id).first().offer.tgLink
-
-    # celery
-    actionWorker = ActionWorker()
-    actionWorker.getInstance()
-    actionWorker.action_create(task_id, user_id, transactionType, actionType)
+    actionWorker = ActionWorker.getInstance()
+    link = actionWorker.action_create(task, user_tg_id)
 
     return redirect(url_for('link'))
 
@@ -226,9 +221,9 @@ def action():
 @app.route("/transactions", methods=['GET', 'POST'])
 @login_required
 def transactions():
-    balanceWorker = BalanceWorker()
-    balanceWorker.getInstance()
+    balanceWorker = BalanceWorker().getInstance()
     balance = balanceWorker.get_balance(current_user.id)
+
     if current_user.status == 'ADVERTISER':
         transactions = Transaction.query().filter_by(advId=g.id).limit(30).all()
     elif current_user.status == 'AFFILIATE':

@@ -35,8 +35,13 @@ class BalanceWorker():
         return 0
 
         
-
-
+    def track_balance(self, user_id, price):
+        user = User.query.filter_by(id=user_id).first()
+        if user.balance <= 0:
+            return False
+        else:
+            user.change_balance(price)
+            return: True
 
 
 

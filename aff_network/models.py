@@ -1,5 +1,6 @@
 from global_web_instances import db, login_manager, bcrypt
 from flask_login import UserMixin
+from datetime import datetime
 
 
 @login_manager.user_loader
@@ -18,6 +19,8 @@ class User(db.Model, UserMixin):
     role = db.Column(db.Integer, nullable=False) # advert. \ affil. \ moder. \ admin
     status = db.Column(db.String, index=True, nullable=False) # active \ inactive
 
+    balance = db.Column(db.Float, index=True, default=0)
+
     channels = db.relationship('Channel', backref='user', lazy=True)
     offers = db.relationship('Offer', backref='user', lazy=True)
 
@@ -27,12 +30,18 @@ class User(db.Model, UserMixin):
     transactionsAdv = db.relationship('Transaction', backref='userAdv', foreign_keys='Transaction.advId', lazy=True)
     transactionsAff = db.relationship('Transaction', backref='userAff', foreign_keys='Transaction.affId', lazy=True)
 
+
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
     #ATTENTION: you should check old_password=current_password before calling this method
     def change_password(self, new_password):
         self.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
+        self.__commit()
+
+    def change_balance(self, balance):
+        self.balance = self.balance + balance
 
         self.__commit()
 
@@ -195,7 +204,7 @@ class Transaction(db.Model):
     affId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     advId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    transaction_time = db.Column(db.DateTime(), nullable=False)
+    transaction_time = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
     userTgId = db.Column(db.String, index=True, nullable=False)
 
     adv_amount = db.Column(db.Float, index=True, nullable=False)
@@ -205,32 +214,38 @@ class Transaction(db.Model):
     currency = db.Column(db.Integer, index=True, nullable=False)
     transactionType = db.Column(db.Integer, index=True, nullable=False) # deposit \ withdrow
     actionType = db.Column(db.Integer, index=True, nullable=False) # click \ subscribe = offerType
+    transactionStatus = db.Column(db.Integer, index=True, default=TRANSACTION_STATUS['NEW']) # new \ handled \ paid
 
 
     def __repr__(self):
-        return '<Transaction {}>'.format(self.taskId)
+        return '<Transaction {}>'.format(self.id)
 
-    def create_transaction(self, task, transaction_time, userTgId, transactionType, actionType):
-        self.taskId = task.id
+    @classmethod
+    def create_transaction(cls, task, userTgId, transactionType, actionType, status):
+        transaction = cls()
 
-        self.affId = task.affilId
-        self.advId = task.offer.advertId
+        transaction.taskId = task.id
 
-        self.transaction_time = transaction_time
-        self.userTgId = userTgId
+        transaction.affId = task.affilId
+        transaction.advId = task.offer.advertId
 
-        self.adv_amount = TRANSACTION_TYPE['ADVERTISER']
-        self.aff_amount = TRANSACTION_TYPE['AFFILIATE']
-        self.user_amount = TRANSACTION_TYPE['USER']
+        transaction.userTgId = userTgId
 
-        self.currency = TRANSACTION_CURRENCY['GRAM']
-        self.transactionType = transactionType
-        self.actionType = actionType
+        transaction.adv_amount = TRANSACTION_AMOUNT['ADVERTISER']
+        transaction.aff_amount = TRANSACTION_AMOUNT['AFFILIATE']
+        transaction.user_amount = TRANSACTION_AMOUNT['USER']
 
-        self.__commit()
+        transaction.currency = TRANSACTION_CURRENCY['GRAM']
+        transaction.transactionType = transactionType
+        transaction.actionType = actionType
+        transaction.transactionStatus = statos
+
+        transaction.__commit()
+
+        return transaction
 
     def change_status(self, status):
-        self.status = status
+        self.transactionStatus = status
         
         self.__commit()
 
@@ -241,3 +256,26 @@ class Transaction(db.Model):
             db.session.add(self)
         
         db.session.commit()
+
+
+class Subscriber(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    subscriberLink = db.Column(db.String, index=True, nullable=False)
+
+    def __repr__(self):
+        return '<Subscriber {}>'.format(self.taskId)
+
+    def create_subscriber(self, link):
+        self.subscriberLink = link
+
+        self.__commit()
+
+    def __commit(self):
+        exist = Subscriber.query.filter_by(id=self.id).first()
+
+        if not exist:
+            db.session.add(self)
+        
+        db.session.commit()
+
