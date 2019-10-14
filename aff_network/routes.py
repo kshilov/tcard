@@ -9,11 +9,58 @@ from celery_handlers import *
 from constants import *
 from balance_worker import *
 
+from functools import wraps
+
+def affiliate_access_level():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if current_user.role != 'AFFILIATE':
+                return redirect(url_for('access_error_page'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def advertiser_access_level():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if current_user.role != 'ADVERTISER':
+                return redirect(url_for('access_error_page'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def moderator_access_level():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if current_user.role != 'MODERATOR':
+                return redirect(url_for('access_error_page'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def admin_access_level():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if current_user.role != 'ADMIN':
+                return redirect(url_for('access_error_page'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 @app.route("/")
 
 @app.route("/about")
 def about():
+    #app.logger.info("00000 *******")
     return render_template('about.html', title='About')
+
+@app.route("/access_error_page")
+def access_error_page():
+    return render_template('access_error_page.html', title='access_error_page')
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -72,6 +119,7 @@ def account():
     return render_template('account.html', title='Account', form=form)
 
 @app.route("/channel", methods=['GET', 'POST'])
+@affiliate_access_level()
 @login_required
 def channel():
 # to create a List of existing categories to choose one by Affiliate
@@ -99,6 +147,7 @@ def channel():
 
 
 @app.route("/offer", methods=['GET', 'POST'])
+@advertiser_access_level()
 @login_required
 def offer():
 # to create a List of existing categories to choose one by Advertiser
@@ -127,6 +176,7 @@ def offer():
 
 
 @app.route("/offerList", methods=['GET', 'POST'])
+@affiliate_access_level()
 @login_required
 #@aff
 def offerList():
@@ -142,8 +192,9 @@ def offerList():
                 offers.append(offer)
     form = CreateOfferListForm()
     #print('This is standard output', file=sys.stdout)
+    offer_id = 'none_offer'
     if form.validate_on_submit():
-        offer_id = request.args.get('offer_id')
+        offer_id = request.form.get('offer_id')
         #offer_id = 2 # test
         task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
         if task:
@@ -153,11 +204,13 @@ def offerList():
             return redirect(url_for('offerList'))
         else:
             flash('Offer error', 'danger')
-    return render_template('offerList.html', title='OfferList', form=form, offers=offers)
+
+    return render_template('offerList.html', title='OfferList', form=form, offers=offers, offer_id=offer_id)
 
 
 @app.route("/category", methods=['GET', 'POST'])
 @login_required
+@moderator_access_level()
 #@moderator
 def category():
     form = AddCategoryForm()
@@ -175,25 +228,28 @@ def category():
 
 @app.route("/taskCheck", methods=['GET', 'POST'])
 @login_required
+@moderator_access_level()
 #@moderator_only
 def taskCheck():
     tasks = Task.query.filter_by(status=TASK_STATUS['NEW']).all()
     form = TaskCheckForm()
+    task_id = 'none_task'
     if form.validate_on_submit():
-        #task_id = request.args.get('task_id')
-        task_id = 1 # test
+        task_id = request.form.get('task_id')
+        #task_id = 1 # test
         task = Task.query.filter_by(id=task_id).first()
         task.change_status(TASK_STATUS['APPROVED'])
 
         # gde eto vizivat'?
-        taskWorker = TaskWorker()
-        taskWorker.getInstance()
+        taskWorker = TaskWorker.getInstance()
         taskWorker.message_queue_create()
         taskWorker.post_messages()
 
         flash('Task accepted', 'success')
         return redirect(url_for('taskCheck'))
-    return render_template('taskCheck.html', title='TaskCheck', form=form, tasks=tasks)
+
+    return render_template('taskCheck.html', title='TaskCheck', form=form, tasks=tasks, task_id=task_id)
+
     # change status in Tasks table****
 
     try:
@@ -202,7 +258,15 @@ def taskCheck():
         app.logger.info("task_approve emit_task_create.apply_async:%s" % str(e))
         # Sorry something went wrong
         # rollback status of a task
-        
+   
+@app.route("/allTasks", methods=['GET', 'POST'])
+@login_required
+@moderator_access_level()
+#@moderator_only
+def allTasks():
+    tasks = Task.query.all()
+
+    return render_template('allTasks.html', title='TaskCheck', tasks=tasks)     
 
 @app.route("/action", methods=['GET', 'POST'])
 def action():
@@ -221,16 +285,16 @@ def action():
 @app.route("/transactions", methods=['GET', 'POST'])
 @login_required
 def transactions():
-    balanceWorker = BalanceWorker().getInstance()
+    balanceWorker = BalanceWorker.getInstance()
     balance = balanceWorker.get_balance(current_user.id)
 
     if current_user.status == 'ADVERTISER':
-        transactions = Transaction.query().filter_by(advId=g.id).limit(30).all()
+        transactions = Transaction.query.filter_by(advId=g.id).limit(30).all()
     elif current_user.status == 'AFFILIATE':
-        transactions = Transaction.query().filter_by(affId=g.id).limit(30).all()
+        transactions = Transaction.query.filter_by(affId=g.id).limit(30).all()
     else:
-        transactions = Transaction.query().limit(30).all()
+        transactions = Transaction.query.limit(30).all()
 
-    return render_template('transactions.html', title='Transactions', form=form, balance=balance, transactions=transactions)
+    return render_template('transactions.html', title='Transactions', balance=balance, transactions=transactions)
 
 

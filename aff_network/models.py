@@ -1,6 +1,7 @@
 from global_web_instances import db, login_manager, bcrypt
 from flask_login import UserMixin
 from datetime import datetime
+from constants import *
 
 
 @login_manager.user_loader
@@ -204,7 +205,7 @@ class Transaction(db.Model):
     affId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     advId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    transaction_time = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
     userTgId = db.Column(db.String, index=True, nullable=False)
 
     adv_amount = db.Column(db.Float, index=True, nullable=False)

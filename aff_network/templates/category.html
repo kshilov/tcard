@@ -25,14 +25,11 @@
         </form>
     </div>
     <ul class="list-group">
-        <li class="list-group-item list-group-item-light"><h2>Existing categories: </h2>
-        <table>
-            <tr>
-                {% for category in allCategories %}
-                <td><h3>{{ category.title }} | </h3></td>
-                {% endfor %}
-            </tr>
-        </table>
-        </li>
+    <h2>Existing categories: </h2>
+        {% for category in allCategories %}
+            <li class="list-group-item list-group-item-light">
+                <h3>{{ category.title }} </h3>
+            </li>
+        {% endfor %}
     </ul>
 {% endblock content %}

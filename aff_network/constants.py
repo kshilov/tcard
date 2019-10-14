@@ -48,7 +48,7 @@ TRANSACTION_TYPE = {
 }
 
 TRANSACTION_AMOUNT = {
-    'ADVERTISER'  : 10,
+    'ADVERTISER'  : -10,
     'AFFILIATE' : 7,
     'USER' : 1
 }
@@ -74,4 +74,4 @@ botId = '596029472:AAGMmAiJ6Oj7Kg3-wgn9HfGTbbtQSkXJhz8'
 
 botLink = ''
 actionLink = 'http://127.0.0.1:5000/action'
-default_redirect_link = 'our_channel_link'
+DEFAULT_REDIRECT_LINK = 'our_channel_link'

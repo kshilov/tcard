@@ -11,8 +11,8 @@ bot = telebot.TeleBot(botId)
 class TaskWorker():
     __instance = None
 
-    @staticmethod 
-    def getInstance():
+    @classmethod 
+    def getInstance(cls):
         """ Static access method. """
         if TaskWorker.__instance == None:
             TaskWorker()
@@ -32,6 +32,7 @@ class TaskWorker():
         )
         ).limit(30).all()
 
+        # NOTIFICATION_WORKER
         for task in tasks:
             message_queue = MessageQueue()
 

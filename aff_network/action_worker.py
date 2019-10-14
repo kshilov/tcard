@@ -6,8 +6,8 @@ from sqlalchemy import and_, or_
 class ActionWorker():
     __instance = None
 
-    @staticmethod 
-    def getInstance():
+    @classmethod 
+    def getInstance(cls):
         """ Static access method. """
         if ActionWorker.__instance == None:
             ActionWorker()
@@ -39,7 +39,7 @@ class ActionWorker():
             transactionStatus = TRANSACTION_STATUS['HANDLED']
 
         if not allow_track or offer.status == OFFER_STATUS['INACTIVE']:
-            return default_redirect_link
+            return DEFAULT_REDIRECT_LINK
 
         Transaction.create_transaction(task, user_tg_id, transactionType, actionType, transactionStatus)
 

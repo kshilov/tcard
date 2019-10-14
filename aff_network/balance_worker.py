@@ -11,8 +11,8 @@ bot = telebot.TeleBot(botId)
 class BalanceWorker():
     __instance = None
 
-    @staticmethod 
-    def getInstance():
+    @classmethod 
+    def getInstance(cls):
         """ Static access method. """
         if BalanceWorker.__instance == None:
             BalanceWorker()
@@ -38,10 +38,12 @@ class BalanceWorker():
     def track_balance(self, user_id, price):
         user = User.query.filter_by(id=user_id).first()
         if user.balance <= 0:
+            # emi_celery()
+                 # deactivate_offer
             return False
         else:
             user.change_balance(price)
-            return: True
+            return True
 
 
 
