@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+    <h2>My accepted offers: </h2>
+    {% for task in tasks %}
+    <li class="list-group-item list-group-item-light">
+                <ul class="list-group">  
+                    <h3>Channel: {{task.offer.tgLink}}</h3>
+                    <h3>Text: {{task.previevText}}</h3>
+                    <h3>Type: {{task.taskType}}</h3>
+                    <h3>Status: {{task.status}}</h3>
+                </ul>
+    </li>
+    {% endfor %}
+            </fieldset>
+    </div>
+{% endblock content %}

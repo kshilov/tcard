@@ -37,16 +37,14 @@
             </fieldset>    
         </form>
     </div>
+    <h2>My Telegram channels: </h2>
+    {% for channel in current_user.channels %}
     <ul class="list-group">
-        <li class="list-group-item list-group-item-light"><h2>Your Telegram channels: </h2>
-        <table>
-            <tr>
-                {% for channel in current_user.channels %}
-                <td><h3>{{channel.tgUrl}} | </h3></td>
-                <td>{{current_user.channels[channel]}}</td>
-                {% endfor %}
-            </tr>
-        </table>
+        <li class="list-group-item list-group-item-light">  
+            <h3>Channel: {{channel.tgUrl}}</h3>
+            <h3>Status: {{channel.status}}</h3>
+            <h3>Category: {{channel.categoryListAff[0].category.title}}</h3>
         </li>
     </ul>
+    {% endfor %}
 {% endblock content %}

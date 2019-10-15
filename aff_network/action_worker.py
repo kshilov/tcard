@@ -1,6 +1,7 @@
-from models import Action, Task, MessageQueue, Transaction
+from models import Task, MessageQueue, Transaction
 from constants import *
 from sqlalchemy import and_, or_
+from balance_worker import *
 
 
 class ActionWorker():
@@ -27,6 +28,7 @@ class ActionWorker():
 
         link = task.offer.tgLink
 
+        # check here - if user_tg_id is unique for current task
         transactionType = TRANSACTION_TYPE['WITHDRAW']
         actionType = OFFER_TYPE['CLICK']
         transactionStatus = TRANSACTION_STATUS['NEW']
@@ -47,13 +49,9 @@ class ActionWorker():
    
      
     # celery
-    def track_subscribe(self, task, user_tg_id)
+    def track_subscribe(self, task, user_tg_id):
         pass
-        subscribers_id_list = bot.getSubscribers(task.offer.tgLink)
-        result_table = innerJoin (transactions, subscribers_id_list)
-        for user in result_table:
-            transaction = Transaction.query.filter_by(userTgId=user.id)
-            transaction.change_status(TRANSACTION_STATUS['HANDLED'])
+
 
 
 

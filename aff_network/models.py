@@ -145,8 +145,8 @@ class CategoryListAdv(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     categoryListType = db.Column(db.String, index=True, nullable=False) # ???
-    categoryId = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
 
+    categoryId = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
 
     def __repr__(self):

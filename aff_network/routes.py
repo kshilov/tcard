@@ -8,6 +8,9 @@ import flask
 from celery_handlers import *
 from constants import *
 from balance_worker import *
+from action_worker import *
+from task_worker import *
+from sqlalchemy import and_, or_
 
 from functools import wraps
 
@@ -150,15 +153,13 @@ def channel():
 @advertiser_access_level()
 @login_required
 def offer():
-# to create a List of existing categories to choose one by Advertiser
+    # to create a List of existing categories to choose one by Advertiser
     formCategories = [(g.id, g.title) for g in Category.query.all()]
     form = CreateOfferForm()
     form.categoryListAdv.choices = formCategories
-    #Category.query.filter_by(id=offer.categoryList.categoryId).first().title
-    price = 5
 
     if form.validate_on_submit():
-        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=price, status='ACTIVE', advertId=current_user.id)
+        offer = Offer(tgLink=form.tgLink.data, offerType=form.offerType.data, price=form.price.data, status='ACTIVE', advertId=current_user.id)
         if offer:
             db.session.add(offer)
             db.session.commit()
@@ -178,24 +179,20 @@ def offer():
 @app.route("/offerList", methods=['GET', 'POST'])
 @affiliate_access_level()
 @login_required
-#@aff
 def offerList():
-    #offers = Offer.query.filter_by(categoryListAdv[0].categoryId=current_user.channels.categoryList[0].categoryId).all()
+    categories = CategoryListAdv.query.join(CategoryListAff, CategoryListAff.categoryId == CategoryListAdv.categoryId).filter(CategoryListAff.id == current_user.channels[0].categoryListAff[0].id).all()
+    #offers = Offer.query.filter( and_(Offer.categoryListAdv[0].categoryId == categories[0].categoryId, Offer.status == 'ACTIVE') ).all()
+
     offersAll = Offer.query.filter_by(status='ACTIVE').all()
     offers = list()
     for offer in offersAll:
-        categoryAdv = offer.categoryListAdv
-        channelsAff = current_user.channels
-        for channel in channelsAff:
-            categoryAff = channel.categoryListAff
-            if categoryAff[0].categoryId == categoryAdv[0].categoryId:
-                offers.append(offer)
+        if offer.categoryListAdv[0].categoryId == categories[0].categoryId:
+            offers.append(offer)
+
     form = CreateOfferListForm()
-    #print('This is standard output', file=sys.stdout)
     offer_id = 'none_offer'
     if form.validate_on_submit():
         offer_id = request.form.get('offer_id')
-        #offer_id = 2 # test
         task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
         if task:
             db.session.add(task)
@@ -211,7 +208,6 @@ def offerList():
 @app.route("/category", methods=['GET', 'POST'])
 @login_required
 @moderator_access_level()
-#@moderator
 def category():
     form = AddCategoryForm()
     allCategories = Category.query.all()
@@ -229,7 +225,6 @@ def category():
 @app.route("/taskCheck", methods=['GET', 'POST'])
 @login_required
 @moderator_access_level()
-#@moderator_only
 def taskCheck():
     tasks = Task.query.filter_by(status=TASK_STATUS['NEW']).all()
     form = TaskCheckForm()
@@ -258,15 +253,24 @@ def taskCheck():
         app.logger.info("task_approve emit_task_create.apply_async:%s" % str(e))
         # Sorry something went wrong
         # rollback status of a task
+
+
+@app.route("/currentUserTasks", methods=['GET', 'POST'])
+@login_required
+@affiliate_access_level()
+def currentUserTasks():
+    tasks = Task.query.filter_by(affilId=current_user.id).all()
+    return render_template('currentUserTasks.html', title='CurrentUserTasks', tasks=tasks)
+
    
 @app.route("/allTasks", methods=['GET', 'POST'])
 @login_required
 @moderator_access_level()
-#@moderator_only
 def allTasks():
-    tasks = Task.query.all()
+    tasks = Task.query.filter_by(status=TASK_STATUS['NEW']).all()
 
     return render_template('allTasks.html', title='TaskCheck', tasks=tasks)     
+
 
 @app.route("/action", methods=['GET', 'POST'])
 def action():
@@ -277,7 +281,7 @@ def action():
     task = Task.query.filter_by(id=task_id).first()
 
     actionWorker = ActionWorker.getInstance()
-    link = actionWorker.action_create(task, user_tg_id)
+    link = actionWorker.create_transaction(task, user_tg_id)
 
     return redirect(url_for('link'))
 

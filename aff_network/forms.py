@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField, FloatField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from models import *
 from constants import *
@@ -53,6 +53,7 @@ class CreateOfferForm(FlaskForm):
     offerType = SelectField('Offer type',
                         choices=[('CLICK','CLICK'), ('SUBSCRIBE','SUBSCRIBE')])
     categoryListAdv = SelectField('Category of the channel', coerce=int)
+    price = FloatField('Price per user', validators=[DataRequired()])
     submit = SubmitField('Create offer')
 
 

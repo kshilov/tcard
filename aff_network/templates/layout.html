@@ -65,14 +65,16 @@
                 {% if current_user.role == 'ADVERTISER' %}
                 <li class="list-group-item list-group-item-light">
                     <a href="/offer">My offers</a>
-                {% elif current_user.role == 'AFFILIATE'  %}
-                <li class="list-group-item list-group-item-light">
-                    <a href="/channel">My channels</a>   
-                </li>
                 {% endif %}
                 {% if current_user.role == 'AFFILIATE' %}
                 <li class="list-group-item list-group-item-light">
+                    <a href="/channel">My channels</a>   
+                </li>
+                <li class="list-group-item list-group-item-light">
                     <a href="/offerList">Offers</a></li>
+                </li>
+                <li class="list-group-item list-group-item-light">
+                    <a href="/currentUserTasks">Accepted offers</a>   
                 </li>
                 {% endif %}
                 <li class="list-group-item list-group-item-light"><a href="/transactions">My transactions</a></li>
