@@ -39,6 +39,7 @@ def emit_task_delete():
 
     return True
 
+
 @celery.task
 def emit_post_message():
     try:
@@ -48,5 +49,18 @@ def emit_post_message():
         app.logger.info("emit_post_message")
     except Exception as e:
         app.logger.info("emit_post_message EXCEPTION traceback: {0}".format(traceback.format_exc()))
+
+    return True
+
+
+@celery.task
+def emit_create_transaction():
+    try:
+        actionWorker = ActionWorker.getInstance()
+        link = actionWorker.create_transaction(task, user_tg_id)
+
+        app.logger.info("emit_task_execute")
+    except Exception as e:
+        app.logger.info("emit_task_execute EXCEPTION traceback: {0}".format(traceback.format_exc()))
 
     return True

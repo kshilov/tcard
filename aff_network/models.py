@@ -31,7 +31,6 @@ class User(db.Model, UserMixin):
     transactionsAdv = db.relationship('Transaction', backref='userAdv', foreign_keys='Transaction.advId', lazy=True)
     transactionsAff = db.relationship('Transaction', backref='userAff', foreign_keys='Transaction.affId', lazy=True)
 
-
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
@@ -41,7 +40,15 @@ class User(db.Model, UserMixin):
 
         self.__commit()
 
-    def change_balance(self, balance):
+    def change_balance_action(self, price):
+        if self.role == 'AFFILIATE' and self.status == 'ACTIVE':
+            self.balance = self.balance + price * (1 - SERVICE_FEE - USER_FEE)
+        elif self.role == 'ADVERTISER' and self.status == 'ACTIVE':
+            self.balance = self.balance - price
+
+        self.__commit()
+
+    def replenish_balance(self, balance):
         self.balance = self.balance + balance
 
         self.__commit()
@@ -103,7 +110,7 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     status = db.Column(db.Integer, index=True, default=0) # new \ approved \ queued \ paused \ inactive
-    taskType = db.Column(db.String, default=0)
+    taskType = db.Column(db.String, default=0) # AUTOMATIC \ MANUAL
 
     previevText = db.Column(db.String, index=True, nullable=False)
 
@@ -222,7 +229,7 @@ class Transaction(db.Model):
         return '<Transaction {}>'.format(self.id)
 
     @classmethod
-    def create_transaction(cls, task, userTgId, transactionType, actionType, status):
+    def create_transaction(cls, task, userTgId, transactionType, actionType, status, price):
         transaction = cls()
 
         transaction.taskId = task.id
@@ -232,14 +239,14 @@ class Transaction(db.Model):
 
         transaction.userTgId = userTgId
 
-        transaction.adv_amount = TRANSACTION_AMOUNT['ADVERTISER']
-        transaction.aff_amount = TRANSACTION_AMOUNT['AFFILIATE']
-        transaction.user_amount = TRANSACTION_AMOUNT['USER']
+        transaction.adv_amount = -price
+        transaction.aff_amount = price * (1 - SERVICE_FEE - USER_FEE)
+        transaction.user_amount = price * USER_FEE
 
         transaction.currency = TRANSACTION_CURRENCY['GRAM']
         transaction.transactionType = transactionType
         transaction.actionType = actionType
-        transaction.transactionStatus = statos
+        transaction.transactionStatus = status
 
         transaction.__commit()
 

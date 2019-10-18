@@ -267,14 +267,14 @@ def currentUserTasks():
 @login_required
 @moderator_access_level()
 def allTasks():
-    tasks = Task.query.filter_by(status=TASK_STATUS['NEW']).all()
+    tasks = Task.query.all()
 
     return render_template('allTasks.html', title='TaskCheck', tasks=tasks)     
 
 
 @app.route("/action", methods=['GET', 'POST'])
 def action():
-    # /action/?task_id=1&?user_id=1
+    # /action?task_id=1&?user_id=1
     task_id = request.args.get('task_id')
     user_tg_id = request.args.get('user_id')
 
@@ -283,14 +283,18 @@ def action():
     actionWorker = ActionWorker.getInstance()
     link = actionWorker.create_transaction(task, user_tg_id)
 
-    return redirect(url_for('link'))
+    #try:
+    #    emit_create_transaction.apply_async()
+    #except Exception as e:
+    #    app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
+
+    return redirect(url_for(link))
 
 
 @app.route("/transactions", methods=['GET', 'POST'])
 @login_required
 def transactions():
-    balanceWorker = BalanceWorker.getInstance()
-    balance = balanceWorker.get_balance(current_user.id)
+    balance = current_user.balance
 
     if current_user.status == 'ADVERTISER':
         transactions = Transaction.query.filter_by(advId=g.id).limit(30).all()

@@ -25,6 +25,7 @@ class BalanceWorker():
         else:
             BalanceWorker.__instance = self
 
+    # depricated
     def get_balance(self, user_id):
         if current_user.status == 'ADVERTISER':
             Transaction.query(func.sum(adv_amount).label('adv_sum')).filter(advId=user_id)
@@ -34,15 +35,15 @@ class BalanceWorker():
             return aff_sum
         return 0
 
-        
-    def track_balance(self, user_id, price):
+    
+    def change_balance(self, user_id, price):
         user = User.query.filter_by(id=user_id).first()
-        if user.balance <= 0:
+        if user.balance <= 0 and user.role == 'ADVERTISER':
             # emi_celery()
-                 # deactivate_offer
+                 # if offer.status == 'ACTIVE': deactivate_offer
             return False
         else:
-            user.change_balance(price)
+            user.change_balance_action(price)
             return True
 
 

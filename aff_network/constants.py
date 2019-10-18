@@ -47,11 +47,6 @@ TRANSACTION_TYPE = {
     'DEPOSIT' : 1
 }
 
-TRANSACTION_AMOUNT = {
-    'ADVERTISER'  : -10,
-    'AFFILIATE' : 7,
-    'USER' : 1
-}
 
 TRANSACTION_CURRENCY = {
     'GRAM'  : 0,
@@ -75,3 +70,11 @@ botId = '596029472:AAGMmAiJ6Oj7Kg3-wgn9HfGTbbtQSkXJhz8'
 botLink = ''
 actionLink = 'http://127.0.0.1:5000/action'
 DEFAULT_REDIRECT_LINK = 'our_channel_link'
+
+SERVICE_FEE = 0.25
+USER_FEE = 0.15
+
+# data from my.telegram.org
+API_ID = 1096933
+API_HASH = 'e379b3408293103cb88945e48b348f5d'
+CURRENT_SESSION_NAME = 'zzz'
