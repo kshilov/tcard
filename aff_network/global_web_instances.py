@@ -10,6 +10,8 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 import sys
 import logging
+import telethon
+
 
 logging.basicConfig(level=logging.DEBUG)
 

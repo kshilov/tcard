@@ -207,7 +207,7 @@ class MessageQueue(db.Model):
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+    taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=True)
 
     affId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     advId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

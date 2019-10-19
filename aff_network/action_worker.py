@@ -36,6 +36,8 @@ class ActionWorker():
 
         if offer.offerType == 'SUBSCRIBE':
             actionType = OFFER_TYPE['PRESUBSCRIBE']
+            # if allow_track = ...
+                # return DEFAULT_REDIRECT_LINK
         else:
             # change adv balance
             allow_track = balance_worker.change_balance(offer.advertId, price)
@@ -60,17 +62,18 @@ class ActionWorker():
 
         for t in transactions:
             task = t.task
-            if track_subscriber(t.id, task, t.userTgId):
+            if self.track_subscriber(t.id, task, t.userTgId):
                 if balance_worker.change_balance(task.offer.advertId, task.offer.price):
                     balance_worker.change_balance(task.affilId, task.offer.price)
 
                     t.update({'actionType': OFFER_TYPE['SUBSCRIBE']}, {'transactionStatus': TRANSACTION_STATUS['HANDLED']})
                     #t.update({'transactionStatus': TRANSACTION_STATUS['HANDLED']})
+                    db.session.commit()
                 
 
 
     def track_subscriber(self, transaction_id, task, user_tg_id):
-        channels = get_list_of_channels
+        channels = self.get_list_of_channels
 
         # channel_name = 'TestChannel12358' # test
         channel_name = task.offer.tgLink

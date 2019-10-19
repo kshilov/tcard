@@ -190,9 +190,12 @@ def offerList():
             offers.append(offer)
 
     form = CreateOfferListForm()
-    offer_id = 'none_offer'
+    #offer_id = 'none_offer'
     if form.validate_on_submit():
-        offer_id = request.form.get('offer_id')
+       # offer_id = request.form.get('offer_id')
+        offer_id = request.form.get('submit')
+        app.logger.info('---------------------------')
+        app.logger.info(offer_id)
         task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
         if task:
             db.session.add(task)
@@ -202,7 +205,7 @@ def offerList():
         else:
             flash('Offer error', 'danger')
 
-    return render_template('offerList.html', title='OfferList', form=form, offers=offers, offer_id=offer_id)
+    return render_template('offerList.html', title='OfferList', form=form, offers=offers)
 
 
 @app.route("/category", methods=['GET', 'POST'])
@@ -274,9 +277,12 @@ def allTasks():
 
 @app.route("/action", methods=['GET', 'POST'])
 def action():
-    # /action?task_id=1&?user_id=1
+    # /action?task_id=1&user_id=1
     task_id = request.args.get('task_id')
     user_tg_id = request.args.get('user_id')
+    #app.logger.info('--------------------------------')
+    #app.logger.info(user_tg_id)
+    #app.logger.info(task_id)
 
     task = Task.query.filter_by(id=task_id).first()
 

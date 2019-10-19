@@ -3,10 +3,6 @@ from constants import *
 from sqlalchemy import and_, or_, func
 from flask_login import current_user
 
-import telebot 
-from telebot import types
-
-bot = telebot.TeleBot(botId)
 
 class BalanceWorker():
     __instance = None

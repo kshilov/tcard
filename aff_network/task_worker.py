@@ -3,8 +3,7 @@ from models import Task
 from constants import *
 from sqlalchemy import and_, or_
 
-import telebot 
-from telebot import types
+import telebot
 
 bot = telebot.TeleBot(botId)
 
