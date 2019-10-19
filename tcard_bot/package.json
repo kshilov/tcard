@@ -1,0 +1,23 @@
+{
+  "name": "tcard-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "pg": "^7.12.1",
+    "pg-hstore": "^2.3.3",
+    "sequelize": "^5.19.4",
+    "sequelize-cli": "^5.5.1",
+    "telegraf": "^3.32.0",
+    "telegraf-i18n": "^6.6.0",
+    "ton-client-node-js": "^0.13.0",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
