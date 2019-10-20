@@ -72,11 +72,14 @@ class TaskWorker():
             message_queue.change_status(MESSAGE_STATUS['PUBLISHED'])
  
 
-    def deactivate_offer(self, offer_id):     
-        tasks = Task.query.filter_by(offerId=offer_id).update({'status': TASK_STATUS['PAUSED']}).all()
-        Offer.query.filter_by(id=offer_id).update({'status': OFFER_STATUS['INACTIVE']})
-        for task in tasks:
-            MessageQueue.query.filter_by(taskId=task.id).first().change_status(MESSAGE_STATUS['DEACTIVATED'])
+    def deactivate_adv_activity(self, adv):
+        #offers = Offer.query.filter_by(advertId=adv).all()
+        offers = Offer.query.filter_by(advertId=adv).update({'status': OFFER_STATUS['INACTIVE']}).all()
+        for offer in offers:
+            tasks = Task.query.filter_by(offerId=offer.id).update({'status': TASK_STATUS['PAUSED']}).all()
+        
+            for task in tasks:
+                MessageQueue.query.filter_by(taskId=task.id).first().change_status(MESSAGE_STATUS['DEACTIVATED'])
             
         db.session.commit()
 

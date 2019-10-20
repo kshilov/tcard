@@ -31,22 +31,23 @@ class ActionWorker():
         transactionType = TRANSACTION_TYPE['WITHDRAW']
         actionType = OFFER_TYPE['CLICK']
         transactionStatus = TRANSACTION_STATUS['NEW']
-        allow_track = True
         price = offer.price
+
+        # check adv balance
+        allow_track = balance_worker.check_balance(offer.advertId)
 
         if offer.offerType == 'SUBSCRIBE':
             actionType = OFFER_TYPE['PRESUBSCRIBE']
-            # if allow_track = ...
-                # return DEFAULT_REDIRECT_LINK
+            if not allow_track:
+                return DEFAULT_REDIRECT_LINK
+        elif allow_track and offer.status == 'ACTIVE':
+                # change adv and aff balance
+                user_aff = User.query.filter_by(id=task.affilId).first()
+                user_aff.change_balance_action(price)
+                user_adv = User.query.filter_by(id=offer.advertId).first()
+                user_adv.change_balance_action(price)
+                transactionStatus = TRANSACTION_STATUS['HANDLED']
         else:
-            # change adv balance
-            allow_track = balance_worker.change_balance(offer.advertId, price)
-            if allow_track:
-                # change aff balance
-                balance_worker.change_balance(task.affilId, price)
-            transactionStatus = TRANSACTION_STATUS['HANDLED']
-
-        if not allow_track or offer.status == OFFER_STATUS['INACTIVE']:
             return DEFAULT_REDIRECT_LINK
 
         link = offer.tgLink
@@ -99,15 +100,11 @@ class ActionWorker():
         return channels
 
    
-    def deposit_transaction(self, adv_id):
-        transactionType = TRANSACTION_TYPE['DEPOSIT']
-        actionType = OFFER_TYPE['VOID']
-        transactionStatus = TRANSACTION_STATUS['HANDLED']
-        user_tg_id = '-'
-        # ... deposit before task ... ??
-        offer = Offer.query.filter_by(advertId=adv_id).first()
-        task = Task.query.filter_by(offerId=offer.id).first()
+    def deposit_transaction(self):
+        transactions = Transaction.query.filter( and_(transactionType=TRANSACTION_TYPE['DEPOSIT'], transactionStatus=TRANSACTION_STATUS['HANDLED']) ).all()
+        for t in transactions:
+            User.query.filter_by(id=t.advId).update({'balance': balance + t.adv_amount})
+            t.update({'transactionStatus': TRANSACTION_STATUS['PAID']})
+        db.session.commit()
 
-        Transaction.create_transaction(task, user_tg_id, transactionType, actionType, transactionStatus)
 
-        return DEFAULT_REDIRECT_LINK

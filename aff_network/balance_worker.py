@@ -32,14 +32,13 @@ class BalanceWorker():
         return 0
 
     
-    def change_balance(self, user_id, price):
+    def check_balance(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         if user.balance <= 0 and user.role == 'ADVERTISER':
             # emi_celery()
                  # if offer.status == 'ACTIVE': deactivate_offer
             return False
         else:
-            user.change_balance_action(price)
             return True
 
 

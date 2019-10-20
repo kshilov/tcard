@@ -2,6 +2,7 @@ from global_web_instances import db, login_manager, bcrypt
 from flask_login import UserMixin
 from datetime import datetime
 from constants import *
+from balance_worker import *
 
 
 @login_manager.user_loader
@@ -34,7 +35,7 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
-    #ATTENTION: you should check old_password=current_password before calling this method
+    # ATTENTION: you should check old_password=current_password before calling this method
     def change_password(self, new_password):
         self.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
 
@@ -45,6 +46,9 @@ class User(db.Model, UserMixin):
             self.balance = self.balance + price * (1 - SERVICE_FEE - USER_FEE)
         elif self.role == 'ADVERTISER' and self.status == 'ACTIVE':
             self.balance = self.balance - price
+        elif self.role == 'ADVERTISER' and self.balance <= 0:
+            balance_worker = BalanceWorker.getInstance()
+            balance_worker.deactivate_adv_activity(self.id) 
 
         self.__commit()
 
