@@ -14,6 +14,17 @@ from sqlalchemy import and_, or_
 
 from functools import wraps
 
+def service_access_level():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if current_user.role != 'SERVICE':
+                return redirect(url_for('access_error_page'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
 def affiliate_access_level():
     def decorator(f):
         @wraps(f)
@@ -312,3 +323,102 @@ def transactions():
     return render_template('transactions.html', title='Transactions', balance=balance, transactions=transactions)
 
 
+########
+#
+# Methods to work with node.js service
+# VERY CAREFULL change this - as it will affect the work of the core
+#
+########
+
+@app.route("/balance/get/transactions", methods=['GET'])
+# @login_required
+# @service_access_level
+def get_transactions():
+    try:
+        transactions = Transaction.query.filter(and_(
+            Transaction.transactionType == TRANSACTION_TYPE['WITHDRAW'],
+            Transaction.transactionStatus == TRANSACTION_STATUS['HANDLED']
+            )).limit(50).all()
+
+        txArr = []
+        for tx in transactions:
+            txArr.append(tx.toDict()) 
+
+        return flask.jsonify(txArr)
+    except Exception as e:
+        app.logger.info("get_transactions:%s" % str(e))
+        return flask.jsonify([])
+        
+
+@app.route("/balance/update/transactions/paid", methods=['POST'])
+# need to pass list of IDs of tx to update: [1,2,3,..]
+# @login_required
+# @service_access_level
+def update_tx_paid():
+    transactions_id = request.json
+    if (len(transactions_id) <= 0):
+        return ''
+
+    Transaction.query.filter(Transaction.id.in_(transactions_id)).update({'transactionStatus': TRANSACTION_STATUS['PAID']}, synchronize_session='fetch')
+    db.session.commit()
+    return ''
+
+@app.route("/balance/update/transactions/handled", methods=['POST'])
+# need to pass list of IDs of tx to update: [1,2,3,..]
+# @login_required
+# @service_access_level
+def update_tx_handled():
+    transactions_id = request.json
+    if (len(transactions_id) <= 0):
+        return ''
+
+    Transaction.query.filter(Transaction.id.in_(transactions_id)).update({'transactionStatus': TRANSACTION_STATUS['HANDLED']}, synchronize_session='fetch')
+    db.session.commit()
+    return ''
+
+@app.route("/messages/get", methods=['GET'])
+# @login_required
+# @service_access_level
+def get_messages():
+    try:
+
+        messages = MessageQueue.query.filter(and_(
+            MessageQueue.status == MESSAGE_STATUS['NEW']
+            )).limit(50).all()
+
+        msgArr = []
+        for msg in messages:
+            msgArr.append(msg.toDict()) 
+
+        return flask.jsonify(msgArr)
+    except Exception as e:
+        app.logger.info("get_messages:%s" % str(e))
+        return flask.jsonify([])
+
+
+@app.route("/messages/update/published", methods=['POST'])
+# need to pass list of IDs of tx to update: [1,2,3,..]
+# @login_required
+# @service_access_level
+def update_messages_published():
+    messages_id = request.json
+    if (len(messages_id) <= 0):
+        return ''
+
+    MessageQueue.query.filter(MessageQueue.id.in_(messages_id)).update({'status': MESSAGE_STATUS['PUBLISHED']}, synchronize_session='fetch')
+    db.session.commit()
+    return ''
+
+
+
+@app.route("/balance/create/transactions/deposit", methods=['POST'])
+# @login_required
+# @service_access_level
+def create_tx_deposit():
+    users = request.json
+    if (len(users) <= 0):
+        return ''
+
+    # Здесь необходимо создавать транзакции deposit
+    # я передаю массив 
+    # users = [{tgId:22, amount:123}, {tgId:23, amount:22}]
