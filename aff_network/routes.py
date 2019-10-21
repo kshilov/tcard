@@ -421,4 +421,8 @@ def create_tx_deposit():
 
     # Здесь необходимо создавать транзакции deposit
     # я передаю массив 
-    # users = [{tgId:22, amount:123}, {tgId:23, amount:22}]
+    # users = [{username:22, amount:123}, {username:23, amount:22}]
+    # for user in users:
+        #.. Для каждого пользователя создать запись в Transaction с типом Deposit и статусом handled
+    
+    # В самом конце вызываем celery...
