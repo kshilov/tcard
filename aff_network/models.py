@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from datetime import datetime
 from constants import *
 from balance_worker import *
+from sqlalchemy import inspect
 
 
 @login_manager.user_loader
@@ -181,6 +182,8 @@ class MessageQueue(db.Model):
 
     taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
 
+    tgUrl = db.Column(db.String, index=True, unique=True, nullable=False)
+
     status = db.Column(db.Integer) # new / published / deactivated
     posting_time = db.Column(db.DateTime())
 
@@ -207,17 +210,21 @@ class MessageQueue(db.Model):
         
         db.session.commit()
 
+    def toDict(self):
+        return { c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs }
+
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=True)
 
-    affId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    advId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    affId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=False)
+    advId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=False)
 
     transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
     userTgId = db.Column(db.String, index=True, nullable=False)
+ 
 
     adv_amount = db.Column(db.Float, index=True, nullable=False)
     aff_amount = db.Column(db.Float, index=True, nullable=False)
@@ -268,6 +275,9 @@ class Transaction(db.Model):
             db.session.add(self)
         
         db.session.commit()
+
+    def toDict(self):
+        return { c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs }
 
 
 class Subscriber(db.Model):
