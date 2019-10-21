@@ -1,4 +1,4 @@
-from models import Transaction, User
+from models import *
 from constants import *
 from sqlalchemy import and_, or_, func
 from flask_login import current_user
