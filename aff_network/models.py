@@ -16,7 +16,7 @@ def load_user(user_id):
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
-    username = db.Column(db.String, index=True, unique=True, nullable=False)
+    username = db.Column(db.String, index=True, unique=True, nullable=False) # unique user id in telegram
     password = db.Column(db.String, nullable=False)
 
     role = db.Column(db.Integer, nullable=False) # advert. \ affil. \ moder. \ admin
@@ -192,6 +192,7 @@ class MessageQueue(db.Model):
 
     def create_message(self, task, posting_time):
         self.taskId = task.id
+        self.tgUrl = task.user.channels[0]
         self.status = 0
         self.posting_time = posting_time
 
@@ -219,12 +220,11 @@ class Transaction(db.Model):
 
     taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=True)
 
-    affId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=False)
-    advId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=False)
-
-    transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
-    userTgId = db.Column(db.String, index=True, nullable=False)
+    advId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=False) # tg_id
+    affId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=True) # tg_id
+    userTgId = db.Column(db.String, index=True, nullable=True)
  
+    transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
 
     adv_amount = db.Column(db.Float, index=True, nullable=False)
     aff_amount = db.Column(db.Float, index=True, nullable=False)
@@ -232,7 +232,7 @@ class Transaction(db.Model):
 
     currency = db.Column(db.Integer, index=True, nullable=False)
     transactionType = db.Column(db.Integer, index=True, nullable=False) # deposit \ withdrow
-    actionType = db.Column(db.Integer, index=True, nullable=False) # click \ subscribe = offerType
+    actionType = db.Column(db.Integer, index=True, nullable=True) # click \ subscribe = offerType
     transactionStatus = db.Column(db.Integer, index=True, default=TRANSACTION_STATUS['NEW']) # new \ handled \ paid
 
 
@@ -263,6 +263,24 @@ class Transaction(db.Model):
 
         return transaction
 
+    @classmethod
+    def create_transaction_deposit(cls, advId, price):
+        transaction = cls()
+
+        transaction.advId = advId
+
+        transaction.adv_amount = price
+        transaction.aff_amount = 0
+        transaction.user_amount = 0
+
+        transaction.currency = TRANSACTION_CURRENCY['GRAM']
+        transaction.transactionType = TRANSACTION_TYPE['DEPOSIT']
+        transaction.transactionStatus = TRANSACTION_STATUS['HANDLED']
+
+        transaction.__commit()
+
+        return transaction
+
     def change_status(self, status):
         self.transactionStatus = status
         
@@ -278,26 +296,4 @@ class Transaction(db.Model):
 
     def toDict(self):
         return { c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs }
-
-
-class Subscriber(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-    subscriberLink = db.Column(db.String, index=True, nullable=False)
-
-    def __repr__(self):
-        return '<Subscriber {}>'.format(self.taskId)
-
-    def create_subscriber(self, link):
-        self.subscriberLink = link
-
-        self.__commit()
-
-    def __commit(self):
-        exist = Subscriber.query.filter_by(id=self.id).first()
-
-        if not exist:
-            db.session.add(self)
-        
-        db.session.commit()
 

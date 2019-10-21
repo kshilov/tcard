@@ -103,7 +103,7 @@ class ActionWorker():
     def deposit_transaction(self):
         transactions = Transaction.query.filter( and_(transactionType=TRANSACTION_TYPE['DEPOSIT'], transactionStatus=TRANSACTION_STATUS['HANDLED']) ).all()
         for t in transactions:
-            User.query.filter_by(id=t.advId).update({'balance': balance + t.adv_amount})
+            User.query.filter_by(username=t.advId).update({'balance': balance + t.adv_amount})
             t.update({'transactionStatus': TRANSACTION_STATUS['PAID']})
         db.session.commit()
 

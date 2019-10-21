@@ -24,7 +24,6 @@ def service_access_level():
         return decorated_function
     return decorator
 
-
 def affiliate_access_level():
     def decorator(f):
         @wraps(f)
@@ -419,10 +418,9 @@ def create_tx_deposit():
     if (len(users) <= 0):
         return ''
 
-    # Здесь необходимо создавать транзакции deposit
-    # я передаю массив 
     # users = [{username:22, amount:123}, {username:23, amount:22}]
-    # for user in users:
-        #.. Для каждого пользователя создать запись в Transaction с типом Deposit и статусом handled
+    for user in users:
+        Transaction.create_transaction_deposit(user.key, user.value)
     
     # В самом конце вызываем celery...
+    
