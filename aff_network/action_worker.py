@@ -3,6 +3,9 @@ from constants import *
 from sqlalchemy import and_, or_
 from balance_worker import *
 from telethon import TelegramClient
+from celery_handlers import *
+
+from global_web_instances import app
 
 
 class ActionWorker():
@@ -51,8 +54,13 @@ class ActionWorker():
             return DEFAULT_REDIRECT_LINK
 
         link = offer.tgLink
-        Transaction.create_transaction(task, user_tg_id, transactionType, actionType, transactionStatus, price)
 
+        #try:
+        emit_create_transaction.apply_async(args=[task.id, user_tg_id, transactionType, actionType, transactionStatus, price])
+        #emit_create_transaction.delay(task.id, user_tg_id, transactionType, actionType, transactionStatus, price)
+        #except Exception as e:
+            #app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
+        
         return link
 
 

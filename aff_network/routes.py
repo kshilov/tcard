@@ -235,6 +235,7 @@ def category():
         #else: flash('Category already exist', 'danger')
     return render_template('category.html', title='Category', form=form, allCategories=allCategories)
 
+
 @app.route("/taskCheck", methods=['GET', 'POST'])
 @login_required
 @moderator_access_level()
@@ -243,29 +244,21 @@ def taskCheck():
     form = TaskCheckForm()
     task_id = 'none_task'
     if form.validate_on_submit():
-        task_id = request.form.get('task_id')
+        task_id = request.form.get('submit')
         #task_id = 1 # test
         task = Task.query.filter_by(id=task_id).first()
         task.change_status(TASK_STATUS['APPROVED'])
 
-        # gde eto vizivat'?
-        taskWorker = TaskWorker.getInstance()
-        taskWorker.message_queue_create()
-        taskWorker.post_messages()
+        try:
+            emit_message_queue_create.apply_async()
+            emit_post_messages.apply_async()
+        except Exception as e:
+            app.logger.info("emit_message_queue_create & emit_post_messages.apply_async:%s" % str(e))
 
         flash('Task accepted', 'success')
         return redirect(url_for('taskCheck'))
 
-    return render_template('taskCheck.html', title='TaskCheck', form=form, tasks=tasks, task_id=task_id)
-
-    # change status in Tasks table****
-
-    try:
-        emit_task_create.apply_async()
-    except Exception as e:
-        app.logger.info("task_approve emit_task_create.apply_async:%s" % str(e))
-        # Sorry something went wrong
-        # rollback status of a task
+    return render_template('taskCheck.html', title='TaskCheck', form=form, tasks=tasks)
 
 
 @app.route("/currentUserTasks", methods=['GET', 'POST'])
@@ -298,11 +291,6 @@ def action():
 
     actionWorker = ActionWorker.getInstance()
     link = actionWorker.create_transaction(task, user_tg_id)
-
-    #try:
-    #    emit_create_transaction.apply_async()
-    #except Exception as e:
-    #    app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
 
     return redirect(url_for(link))
 
@@ -407,7 +395,6 @@ def update_messages_published():
     MessageQueue.query.filter(MessageQueue.id.in_(messages_id)).update({'status': MESSAGE_STATUS['PUBLISHED']}, synchronize_session='fetch')
     db.session.commit()
     return ''
-
 
 
 @app.route("/balance/create/transactions/deposit", methods=['POST'])

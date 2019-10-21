@@ -2,7 +2,6 @@ from global_web_instances import db, login_manager, bcrypt
 from flask_login import UserMixin
 from datetime import datetime
 from constants import *
-from balance_worker import *
 from sqlalchemy import inspect
 
 
@@ -47,9 +46,6 @@ class User(db.Model, UserMixin):
             self.balance = self.balance + price * (1 - SERVICE_FEE - USER_FEE)
         elif self.role == 'ADVERTISER' and self.status == 'ACTIVE':
             self.balance = self.balance - price
-        elif self.role == 'ADVERTISER' and self.balance <= 0:
-            balance_worker = BalanceWorker.getInstance()
-            balance_worker.deactivate_adv_activity(self.id) 
 
         self.__commit()
 
@@ -220,8 +216,8 @@ class Transaction(db.Model):
 
     taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=True)
 
-    advId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=False) # tg_id
-    affId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=True) # tg_id
+    advId = db.Column(db.String, db.ForeignKey('user.username'), nullable=False) # tg_id
+    affId = db.Column(db.String, db.ForeignKey('user.username'), nullable=True) # tg_id
     userTgId = db.Column(db.String, index=True, nullable=True)
  
     transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -245,8 +241,8 @@ class Transaction(db.Model):
 
         transaction.taskId = task.id
 
-        transaction.affId = task.affilId
-        transaction.advId = task.offer.advertId
+        transaction.affId = task.user.username
+        transaction.advId = task.offer.user.username
 
         transaction.userTgId = userTgId
 

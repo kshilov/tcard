@@ -1,4 +1,4 @@
-from models import *
+from models import User, Transaction
 from constants import *
 from sqlalchemy import and_, or_, func
 from flask_login import current_user
@@ -35,15 +35,12 @@ class BalanceWorker():
     def check_balance(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         if user.balance <= 0 and user.role == 'ADVERTISER':
-            # emi_celery()
-                 # if offer.status == 'ACTIVE': deactivate_offer
+            try:
+                emit_deactivate_activity.apply_async(args=[user_id])
+            except Exception as e:
+                app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
             return False
         else:
             return True
-
-
-
-
-
 
 
