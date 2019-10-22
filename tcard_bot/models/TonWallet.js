@@ -32,7 +32,6 @@ module.exports = function(sequelize, DataTypes) {
 	});
 
 	TonWallet.associate = function(models) {
-		TonWallet.hasMany(models.Transaction, {onDelete: 'restrict'});
 		TonWallet.belongsTo(models.User);
 		db = models;
 	};

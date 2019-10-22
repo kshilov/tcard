@@ -20,6 +20,10 @@ const giverAbi =
 };
 
 
+async function deposit_grams(ton, wallet_address, amount){
+    await std_send_grams_from_giver(ton, wallet_address, amount)
+}
+
 async function ton_show_balance(ton, account) {
     const accounts = await ton.queries.accounts.query({
         id: { eq: account }
@@ -66,14 +70,14 @@ async function ton_wallet_send_to(ton, keys, from_address, to_address, grams) {
     return result;
 }
 
-async function std_send_grams_from_giver(ton, to_address) {
+async function std_send_grams_from_giver(ton, to_address, amount=10000000000) {
     const result = await ton.contracts.run({
         address: giverAddress,
         functionName: 'sendGrams',
         abi: giverAbi,
         input: {
             dest: `0x${to_address}`,
-            amount: 10000000000
+            amount: amount
         },
         keyPair: null,
     });

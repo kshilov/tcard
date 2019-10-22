@@ -33,6 +33,14 @@ module.exports = function(sequelize, DataTypes) {
 		deleted: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: false
+		},
+		aff_channel_id: {
+			type: DataTypes.INTEGER,
+			allowNull: true	
+		},
+		aff_channel_url : {
+			type: DataTypes.STRING,
+			allowNull: true	
 		}
 	}, {
 		timestamps: true,
@@ -51,6 +59,21 @@ All methods start here
 /*
 Class methods
 */
+	User.aff_channel_id = async function(channel_url) {
+		var user = await User.findOne({
+			where: {
+				aff_channel_url : channel_url
+			}
+		});
+
+		if (user) {
+			return user.aff_channel_id
+		}
+
+		return undefined;
+
+	}
+
 	User.get_user = async function (telegram_id) {
 		var user = await User.findOne({where: {telegram_id}});
 
