@@ -2,8 +2,7 @@ from global_web_instances import db, login_manager, bcrypt
 from flask_login import UserMixin
 from datetime import datetime
 from constants import *
-from balance_worker import *
-from sqlalchemy import inspect
+from sqlalchemy import inspect, UniqueConstraint
 
 
 @login_manager.user_loader
@@ -16,7 +15,7 @@ def load_user(user_id):
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
-    username = db.Column(db.String, index=True, unique=True, nullable=False)
+    username = db.Column(db.String, index=True, unique=True, nullable=False) # unique user id in telegram
     password = db.Column(db.String, nullable=False)
 
     role = db.Column(db.Integer, nullable=False) # advert. \ affil. \ moder. \ admin
@@ -47,9 +46,6 @@ class User(db.Model, UserMixin):
             self.balance = self.balance + price * (1 - SERVICE_FEE - USER_FEE)
         elif self.role == 'ADVERTISER' and self.status == 'ACTIVE':
             self.balance = self.balance - price
-        elif self.role == 'ADVERTISER' and self.balance <= 0:
-            balance_worker = BalanceWorker.getInstance()
-            balance_worker.deactivate_adv_activity(self.id) 
 
         self.__commit()
 
@@ -121,6 +117,7 @@ class Task(db.Model):
 
     affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
+    __table_args__=(UniqueConstraint('affilId', 'offerId', name='unique_offer'),)
 
     message_queues = db.relationship('MessageQueue', backref='task', lazy=True)
 
@@ -181,8 +178,10 @@ class MessageQueue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+    message_text = db.Column(db.String, nullable=False)
+    #message_tgUrl = db.Column(db.String, nullable=False) # advertiser channel
 
-    tgUrl = db.Column(db.String, index=True, unique=True, nullable=False)
+    tgUrl = db.Column(db.String, index=True, nullable=False) # affiliate channel
 
     status = db.Column(db.Integer) # new / published / deactivated
     posting_time = db.Column(db.DateTime())
@@ -192,7 +191,9 @@ class MessageQueue(db.Model):
 
     def create_message(self, task, posting_time):
         self.taskId = task.id
-        self.status = 0
+        self.message_text = task.previevText
+        self.tgUrl = task.user.channels[0]
+        self.status = MESSAGE_STATUS['NEW']
         self.posting_time = posting_time
 
         self.__commit()
@@ -219,12 +220,11 @@ class Transaction(db.Model):
 
     taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=True)
 
-    affId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=False)
-    advId = db.Column(db.Integer, db.ForeignKey('user.username'), nullable=False)
-
-    transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
-    userTgId = db.Column(db.String, index=True, nullable=False)
+    advId = db.Column(db.String, db.ForeignKey('user.username'), nullable=False) # tg_id
+    affId = db.Column(db.String, db.ForeignKey('user.username'), nullable=True) # tg_id
+    userTgId = db.Column(db.String, index=True, nullable=True)
  
+    transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
 
     adv_amount = db.Column(db.Float, index=True, nullable=False)
     aff_amount = db.Column(db.Float, index=True, nullable=False)
@@ -232,7 +232,7 @@ class Transaction(db.Model):
 
     currency = db.Column(db.Integer, index=True, nullable=False)
     transactionType = db.Column(db.Integer, index=True, nullable=False) # deposit \ withdrow
-    actionType = db.Column(db.Integer, index=True, nullable=False) # click \ subscribe = offerType
+    actionType = db.Column(db.Integer, index=True, nullable=True) # click \ subscribe = offerType
     transactionStatus = db.Column(db.Integer, index=True, default=TRANSACTION_STATUS['NEW']) # new \ handled \ paid
 
 
@@ -245,8 +245,8 @@ class Transaction(db.Model):
 
         transaction.taskId = task.id
 
-        transaction.affId = task.affilId
-        transaction.advId = task.offer.advertId
+        transaction.affId = task.user.username
+        transaction.advId = task.offer.user.username
 
         transaction.userTgId = userTgId
 
@@ -258,6 +258,24 @@ class Transaction(db.Model):
         transaction.transactionType = transactionType
         transaction.actionType = actionType
         transaction.transactionStatus = status
+
+        transaction.__commit()
+
+        return transaction
+
+    @classmethod
+    def create_transaction_deposit(cls, advId, price):
+        transaction = cls()
+
+        transaction.advId = advId
+
+        transaction.adv_amount = price
+        transaction.aff_amount = 0
+        transaction.user_amount = 0
+
+        transaction.currency = TRANSACTION_CURRENCY['GRAM']
+        transaction.transactionType = TRANSACTION_TYPE['DEPOSIT']
+        transaction.transactionStatus = TRANSACTION_STATUS['HANDLED']
 
         transaction.__commit()
 
@@ -278,26 +296,4 @@ class Transaction(db.Model):
 
     def toDict(self):
         return { c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs }
-
-
-class Subscriber(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-    subscriberLink = db.Column(db.String, index=True, nullable=False)
-
-    def __repr__(self):
-        return '<Subscriber {}>'.format(self.taskId)
-
-    def create_subscriber(self, link):
-        self.subscriberLink = link
-
-        self.__commit()
-
-    def __commit(self):
-        exist = Subscriber.query.filter_by(id=self.id).first()
-
-        if not exist:
-            db.session.add(self)
-        
-        db.session.commit()
 

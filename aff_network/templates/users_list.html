@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+    <form method="POST" action="{{ url_for('taskCheck') }}">
+    <fieldset class="form-group">
+    <h2>Users </h2>
+    {% for u in users %}
+    <li class="list-group-item list-group-item-light">
+                <ul class="list-group">  
+                    <h3>ID: {{u.id}}</h3>
+                    <h3>Username: {{u.username}}</h3>
+                    <h3>Role: {{u.role}}</h3>
+                    <h3>Status: {{u.status}}</h3>
+                    <h3>Balance: {{u.balance}}</h3>
+                </ul>
+    </li>
+    {% endfor %}
+            </fieldset>
+        </form>
+    </div>
+{% endblock content %}

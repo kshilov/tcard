@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+    <form method="POST" action="{{ url_for('taskCheck') }}">
+    <fieldset class="form-group">
+    <h2>Messages in queue: </h2>
+    {% for msg in messages %}
+    <li class="list-group-item list-group-item-light">
+                <ul class="list-group">  
+                    <h3>ID: {{msg.id}}</h3>
+                    <h3>Status: {{msg.status}}</h3>
+                    <h3>Channel: {{msg.tgUrl}}</h3>
+                </ul>
+    </li>
+    {% endfor %}
+            </fieldset>
+        </form>
+    </div>
+{% endblock content %}

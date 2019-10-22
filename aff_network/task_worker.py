@@ -25,13 +25,13 @@ class TaskWorker():
             TaskWorker.__instance = self
 
     def message_queue_create(self):
+        # AUTOMATIC TASKS
         tasks = Task.query.filter( and_(
                 Task.status == TASK_STATUS['APPROVED'],
                 Task.taskType == TASK_TYPE['AUTOMATIC']
         )
         ).limit(30).all()
 
-        # NOTIFICATION_WORKER
         for task in tasks:
             message_queue = MessageQueue()
 
@@ -39,15 +39,20 @@ class TaskWorker():
 
             task.change_status(TASK_STATUS['QUEUED'])
 
-            if task.taskType == 'MANUAL':
-                # send link in private chat to MANUAL publishing
-                bot.send_message(task.user.username, botLink, 1)
+        # MANUAL TASKS
+        #tasks_manual = Task.query.filter( and_(
+        #        Task.status == TASK_STATUS['APPROVED'],
+        #        Task.taskType == TASK_TYPE['MANUAL']
+        #)
+        #).limit(30).all()
 
+        #for task in tasks_manual:
+            #task.change_status(TASK_STATUS['SENDED'])
+            # send link in private chat to MANUAL publishing
+            # NOTIFICATION_WORKER
+            #bot.send_message(task.user.username, botLink, 1)
 
-    #def task_execute(self):
-        #pass
-
-
+    # depricated (in Kirill code?)
     def post_messages(self):
         message_queues = MessageQueue.query.filter(
                 MessageQueue.status == MESSAGE_STATUS['NEW']
@@ -82,9 +87,5 @@ class TaskWorker():
                 MessageQueue.query.filter_by(taskId=task.id).first().change_status(MESSAGE_STATUS['DEACTIVATED'])
             
         db.session.commit()
-
-
-
-
 
 

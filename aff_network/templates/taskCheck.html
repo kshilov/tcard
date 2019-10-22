@@ -7,13 +7,12 @@
     <h2>Tasks: </h2>
     {% for task in tasks %}
     <li class="list-group-item list-group-item-light">
-    <input name="task_id" type="hidden" value="{{ task.id }}" />
                 <ul class="list-group">  
                     <h3>ID: {{task.id}}</h3>
                     <h3>Text: {{task.previevText}}</h3>
                     <h3>Price: {{task.offer.price}}</h3>
     	            <div class="form-group">
-         	        {{ form.submit(class="btn btn-outline-info") }}
+         	       <input class="btn btn-outline-info" id="submit" name="submit" type="submit" value="{{ task.id }}">
     	            </div>
                 </ul>
     </li>

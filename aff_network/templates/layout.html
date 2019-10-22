@@ -80,6 +80,9 @@
                 <li class="list-group-item list-group-item-light"><a href="/transactions">My transactions</a></li>
                 {% if current_user.role == 'MODERATOR' %}
                 <li class="list-group-item list-group-item-light">
+                    <a href="/users_list">All users</a>
+                </li>
+                <li class="list-group-item list-group-item-light">
                     <a href="/category">Categories</a>
                 </li>
                 <li class="list-group-item list-group-item-light">
@@ -87,6 +90,9 @@
                 </li>
                 <li class="list-group-item list-group-item-light">
                     <a href="/allTasks">All Tasks</a>
+                </li>
+                <li class="list-group-item list-group-item-light">
+                    <a href="/messages">All Messages</a>
                 </li>
                 {% endif %}
               </ul>
