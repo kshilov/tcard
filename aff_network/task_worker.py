@@ -52,7 +52,7 @@ class TaskWorker():
             # NOTIFICATION_WORKER
             #bot.send_message(task.user.username, botLink, 1)
 
-
+    # depricated (in Kirill code?)
     def post_messages(self):
         message_queues = MessageQueue.query.filter(
                 MessageQueue.status == MESSAGE_STATUS['NEW']

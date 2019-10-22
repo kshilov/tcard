@@ -115,6 +115,15 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route("/users_list", methods=['GET', 'POST'])
+@login_required
+@moderator_access_level()
+def users_list():
+    users = User.query.all()
+
+    return render_template('users_list.html', title='Users_list', users=users)   
+
+
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
@@ -141,7 +150,7 @@ def channel():
     form.categoryListAff.choices = formCategories
 
     if form.validate_on_submit():
-        channel = Channel(tgUrl=form.tgUrl.data, status='active', partnerId=current_user.id)
+        channel = Channel(tgUrl=form.tgUrl.data, status='ACTIVE', partnerId=current_user.id)
         if channel:
             db.session.add(channel)
             db.session.commit()
@@ -190,29 +199,34 @@ def offer():
 @affiliate_access_level()
 @login_required
 def offerList():
-    categories = CategoryListAdv.query.join(CategoryListAff, CategoryListAff.categoryId == CategoryListAdv.categoryId).filter(CategoryListAff.id == current_user.channels[0].categoryListAff[0].id).all()
-    #offers = Offer.query.filter( and_(Offer.categoryListAdv[0].categoryId == categories[0].categoryId, Offer.status == 'ACTIVE') ).all()
-
-    offersAll = Offer.query.filter_by(status='ACTIVE').all()
     offers = list()
-    for offer in offersAll:
-        if offer.categoryListAdv[0].categoryId == categories[0].categoryId:
-            offers.append(offer)
+    if current_user.channels:
+        categories = CategoryListAdv.query.join(CategoryListAff, CategoryListAff.categoryId == CategoryListAdv.categoryId).filter(CategoryListAff.id == current_user.channels[0].categoryListAff[0].id).all()
+        ##offers = Offer.query.filter( and_(Offer.categoryListAdv[0].categoryId == categories[0].categoryId, Offer.status == 'ACTIVE') ).all()
+        #if not current_user.tasks:
+        offersAll = Offer.query.filter_by(status='ACTIVE').all()
+        #else:
+        #    accepted_offers = Offer.query.filter(Offer.tasks.contains(current_user.tasks)).all()
+        #    offersAll = Offer.query.join(accepted_offers, accepted_offers.id != Offer.id).filter_by(status='ACTIVE').all()
+        for offer in offersAll:
+            if offer.categoryListAdv[0].categoryId == categories[0].categoryId:
+                offers.append(offer)
 
     form = CreateOfferListForm()
-    #offer_id = 'none_offer'
     if form.validate_on_submit():
-       # offer_id = request.form.get('offer_id')
         offer_id = request.form.get('submit')
-        app.logger.info('---------------------------')
-        app.logger.info(offer_id)
-        task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
-        if task:
+        #app.logger.info('---------------------------')
+        #app.logger.info(offer_id)
+        try:
+            task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
+
             db.session.add(task)
             db.session.commit()
             flash('Offer accepted', 'success')
             return redirect(url_for('offerList'))
-        else:
+        except Exception:
+            #flash('Offer already choosen', 'danger')
+            db.session.rollback()
             flash('Offer error', 'danger')
 
     return render_template('offerList.html', title='OfferList', form=form, offers=offers)
@@ -251,9 +265,9 @@ def taskCheck():
 
         try:
             emit_message_queue_create.apply_async()
-            emit_post_messages.apply_async()
+            #emit_post_messages.apply_async()
         except Exception as e:
-            app.logger.info("emit_message_queue_create & emit_post_messages.apply_async:%s" % str(e))
+            app.logger.info("emit_message_queue_create.apply_async:%s" % str(e))
 
         flash('Task accepted', 'success')
         return redirect(url_for('taskCheck'))
@@ -276,6 +290,15 @@ def allTasks():
     tasks = Task.query.all()
 
     return render_template('allTasks.html', title='TaskCheck', tasks=tasks)     
+
+
+@app.route("/messages", methods=['GET', 'POST'])
+@login_required
+@moderator_access_level()
+def messages():
+    messages = MessageQueue.query.all()
+
+    return render_template('messages.html', title='Messages', messages=messages)   
 
 
 @app.route("/action", methods=['GET', 'POST'])
@@ -406,8 +429,13 @@ def create_tx_deposit():
         return ''
 
     # users = [{username:22, amount:123}, {username:23, amount:22}]
-    for user in users:
-        Transaction.create_transaction_deposit(user.key, user.value)
+    # users = {'teast1': 500}
+    ## u = key, users[u] = value
+    for u in users:
+        Transaction.create_transaction_deposit(u, users[u])
     
-    # В самом конце вызываем celery...
+    try:
+        emit_handle_paid_transaction.apply_async()
+    except Exception as e:
+        app.logger.info("emit_handle_paid_transaction.apply_async:%s" % str(e))
     

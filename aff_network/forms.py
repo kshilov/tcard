@@ -6,7 +6,7 @@ from constants import *
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username',
+    username = StringField('Username (Your Telegram URL!)',
                            validators=[DataRequired(), Length(min=2, max=32)])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password',

@@ -2,7 +2,7 @@ from global_web_instances import db, login_manager, bcrypt
 from flask_login import UserMixin
 from datetime import datetime
 from constants import *
-from sqlalchemy import inspect
+from sqlalchemy import inspect, UniqueConstraint
 
 
 @login_manager.user_loader
@@ -117,6 +117,7 @@ class Task(db.Model):
 
     affilId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
+    __table_args__=(UniqueConstraint('affilId', 'offerId', name='unique_offer'),)
 
     message_queues = db.relationship('MessageQueue', backref='task', lazy=True)
 
@@ -177,8 +178,10 @@ class MessageQueue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     taskId = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+    message_text = db.Column(db.String, nullable=False)
+    #message_tgUrl = db.Column(db.String, nullable=False) # advertiser channel
 
-    tgUrl = db.Column(db.String, index=True, unique=True, nullable=False)
+    tgUrl = db.Column(db.String, index=True, nullable=False) # affiliate channel
 
     status = db.Column(db.Integer) # new / published / deactivated
     posting_time = db.Column(db.DateTime())
@@ -188,8 +191,9 @@ class MessageQueue(db.Model):
 
     def create_message(self, task, posting_time):
         self.taskId = task.id
+        self.message_text = task.previevText
         self.tgUrl = task.user.channels[0]
-        self.status = 0
+        self.status = MESSAGE_STATUS['NEW']
         self.posting_time = posting_time
 
         self.__commit()

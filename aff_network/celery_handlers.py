@@ -1,7 +1,11 @@
 import traceback
 from global_celery_instances import celery 
 from task_worker import TaskWorker
-from models import Task
+from models import Task, Transaction, User
+from global_web_instances import app
+from sqlalchemy import and_, or_
+from constants import *
+
 
 @celery.task
 def emit_message_queue_create():
@@ -9,9 +13,9 @@ def emit_message_queue_create():
         task_worker = TaskWorker.getInstance()
         task_worker.message_queue_create()
 
-        app.logger.info("emit_taskWorker_create")
+        app.logger.info("emit_message_queue_create")
     except Exception as e:
-        app.logger.info("emit_taskWorker_create EXCEPTION traceback: {0}".format(traceback.format_exc()))
+        app.logger.info("emit_message_queue_create EXCEPTION traceback: {0}".format(traceback.format_exc()))
 
     return True
      
@@ -64,5 +68,23 @@ def emit_create_transaction(task_id, user_tg_id, transactionType, actionType, tr
         app.logger.info("emit_create_transaction")
     except Exception as e:
         app.logger.info("emit_create_transaction EXCEPTION traceback: {0}".format(traceback.format_exc()))
+
+    return True
+
+
+@celery.task
+def emit_handle_paid_transaction():
+    try:     
+        transactions = Transaction.query.filter( and_(Transaction.transactionType==TRANSACTION_TYPE['DEPOSIT'], Transaction.transactionStatus==TRANSACTION_STATUS['HANDLED']) ).all()
+
+        for t in transactions:
+            user = User.query.filter_by(username=t.advId).first()
+            user.replenish_balance(t.adv_amount)
+
+        transactions.update({'transactionStatus': TRANSACTION_STATUS['PAID']}).all()
+
+        app.logger.info("emit_create_transaction")
+    except Exception as e:
+        app.logger.info("emit_handle_paid_transaction EXCEPTION traceback: {0}".format(traceback.format_exc()))
 
     return True

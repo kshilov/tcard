@@ -2,6 +2,7 @@ from models import User, Transaction
 from constants import *
 from sqlalchemy import and_, or_, func
 from flask_login import current_user
+from global_web_instances import app
 
 
 class BalanceWorker():
