@@ -47,10 +47,10 @@ class BalanceManager {
                 throw "There is no new syncs";
             }
 
-            new_sync.array.forEach(action => {
-                var message = await action.get_message()
+            new_sync.array.forEach(async (action) => {
+                var message = action.get_message()
 
-                await message.array.forEach(transaction => {
+                 message.array.forEach(async (transaction) => {
                     try {
                         await this.db.SyncTransaction.create({
                             aggregated_transaction_id : transaction.id,
@@ -88,8 +88,8 @@ class BalanceManager {
                 throw "There is no new transactions";
             }
 
-            new_txs.array.forEach(sync_tx => {
-                var data = await sync_tx.get_data()
+            new_txs.array.forEach(async (sync_tx) => {
+                var data = sync_tx.get_data()
                 try {
                     var aff_user = await this.db.User.get_by_username(data.affId) 
                     var adv_user = await this.db.User.get_by_username(data.advId)
@@ -154,4 +154,18 @@ class BalanceManager {
             console.log("Can't deposit grams:", error)
         }
     }    
+}
+
+const balance_manager = undefined;
+
+async function setupBalanceManager(ton, db, bot){
+    if (balance_manager){
+        return balance_manager;
+    }
+
+    return new BalanceManager(ton, db, bot);
+}
+
+module.exports = {
+    setupBalanceManager
 }

@@ -7,6 +7,10 @@ const polling_interval = process.env.POLLING_INTERVAL;
 
 const axios = require('axios');
 
+const {setupBalanceManager} = require('./BalanceManager')
+const {setupMessageManager} = require('./MessageManager')
+
+
 const GET_TRANSACTIONS = 'http://127.0.0.1:5000/balance/get/transactions'
 const UPDATE_TRANSACTIONS_PAID = 'http://127.0.0.1:5000/balance/update/transactions/paid'
 
@@ -27,6 +31,20 @@ class AffSyncManager {
             this.get_messages();
             this.listen_updates();
         }, polling_interval)
+    }
+
+    async init_managers(){
+        try {
+            this.balance_manager = await setupBalanceManager(this.ton, this.db, this.bot)
+            this.message_manager = await setupMessageManager(this.db, this.bot)
+
+            await this.balance_manager.init()
+            await this.message_manager.init()
+        }catch(error){
+            console.log("Can't init_managers", error)
+        }finally{
+            console.log("Init_managers success: BalanceManager, MessageManager")
+        }
     }
 
     async _handle_transactions(transactions){

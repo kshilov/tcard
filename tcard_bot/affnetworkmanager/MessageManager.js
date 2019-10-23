@@ -41,10 +41,10 @@ class MessageManager {
                 throw "There is no new syncs";
             }
 
-            new_sync.array.forEach(action => {
-                var message = await action.get_message()
+            new_sync.array.forEach(async (action) => {
+                var message = action.get_message()
 
-                await message.array.forEach(msg => {
+                await message.array.forEach(async (msg) => {
                     try {
                         await this.db.SyncMessage.create({
                             aggregated_message_id : msg.id,
@@ -82,7 +82,7 @@ class MessageManager {
                 throw "There is no new messages";
             }
 
-            new_msgs.array.forEach(msg => {
+            new_msgs.array.forEach(async (msg) => {
                 var data = await msg.get_data()
                 try {
                     this._handle_message(msg, data)
@@ -107,14 +107,16 @@ class MessageManager {
             return;
         }
 
-        var aff_channel_id = await this.db.User.aff_channel_id(channel_url)
+        //var aff_channel_id = await this.db.User.aff_channel_id(channel_url)
+
+        var aff_channel_name = 'tcardtestchannel'
 
         if (!aff_channel_id){
             console.log("Can't find channel_id for affeliate")
             return;
         }
 
-        await this.bot.telegram.sendMessage(aff_channel_id, message_text)
+        await this.bot.telegram.sendMessage(aff_channel_name, message_text)
 
         msg.done()
     }
@@ -123,12 +125,12 @@ class MessageManager {
 
 const message_manager = undefined;
 
-async function setupMessageManager(db, bot, sync_manager){
+async function setupMessageManager(db, bot){
     if (message_manager){
         return message_manager;
     }
 
-    return new MessageManager(db, bot, sync_manager);
+    return new MessageManager(db, bot);
 }
 
 module.exports = {

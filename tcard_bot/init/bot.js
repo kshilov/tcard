@@ -5,6 +5,9 @@ const Telegraf = require('telegraf')
 const uuid = require('uuid/v4')
 const secretPath = uuid()
 
+const bot_listen_port = process.env.BOT_LISTEN_PORT;
+
+
 // Create bot
 const bot = new Telegraf(process.env.TOKEN, {
   channelMode: true,
@@ -35,7 +38,7 @@ function startBot() {
       bot.telegram
         .deleteWebhook()
         .then(async () => {
-          bot.startWebhook(`/${secretPath}`, undefined, 5000)
+          bot.startWebhook(`/${secretPath}`, undefined, bot_listen_port)
           await bot.telegram.setWebhook(
             `https://${domain}/${secretPath}`,
             undefined,

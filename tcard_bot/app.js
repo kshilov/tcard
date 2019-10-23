@@ -44,10 +44,11 @@ await connectTon();
 
 await setupWallet(bot, ton_client)
 
-
+/*
 var nm = await setupNotificationManager(ton_client, db, bot)
 await nm.init()
 nm.listen_incoming_messages()
+*/
 
 // Let's start the bot
 startBot();
