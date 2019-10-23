@@ -1,3 +1,5 @@
+from handlers_init import *
+
 from models import User, Transaction
 from constants import *
 from sqlalchemy import and_, or_, func
