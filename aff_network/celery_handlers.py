@@ -98,6 +98,7 @@ def emit_handle_paid_transaction():
 
 @celery.task
 def emit_track_subscribe():
+    from action_worker import ActionWorker
     try:
         action_worker = ActionWorker.getInstance()
         action_worker.update_subscribers_list()
