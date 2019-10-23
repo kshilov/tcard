@@ -184,7 +184,7 @@ def offer():
             db.session.commit()
         else:
             flash('Please check Telegram URL', 'danger')
-        categoryListAdv = CategoryListAdv(categoryListType=form.categoryListAdv.data, categoryId=form.categoryListAdv.data, offerId=offer.id)
+        categoryListAdv = CategoryListAdv(categoryId=form.categoryListAdv.data, offerId=offer.id)
         if categoryListAdv:
             db.session.add(categoryListAdv)
             db.session.commit()
@@ -201,7 +201,7 @@ def offer():
 def offerList():
     offers = list()
     if current_user.channels:
-        categories = CategoryListAdv.query.join(CategoryListAff, CategoryListAff.categoryId == CategoryListAdv.categoryId).filter(CategoryListAff.id == current_user.channels[0].categoryListAff[0].id).all()
+        categories = CategoryListAdv.query.join(CategoryListAff, CategoryListAff.categoryId == CategoryListAdv.categoryId).filter(CategoryListAdv.id == current_user.channels[0].categoryListAff[0].id).all()
         ##offers = Offer.query.filter( and_(Offer.categoryListAdv[0].categoryId == categories[0].categoryId, Offer.status == 'ACTIVE') ).all()
         #if not current_user.tasks:
         offersAll = Offer.query.filter_by(status='ACTIVE').all()

@@ -82,15 +82,18 @@ def emit_handle_paid_transaction():
         transactions = Transaction.query.filter( and_(Transaction.transactionType==TRANSACTION_TYPE['DEPOSIT'], Transaction.transactionStatus==TRANSACTION_STATUS['HANDLED']) ).all()
 
         for t in transactions:
-            user = User.query.filter_by(username=t.advId).first()
-            user.replenish_balance(t.adv_amount)
+            try:
+                user = User.query.filter_by(username=t.advId).first()
+                user.replenish_balance(t.adv_amount)
+                t.paid()
 
-            # activate all activity if balance > 0
-            if user.balance > 0:
-                taskWorker = TaskWorker.getInstance()
-                taskWorker.activate_adv_activity(user.id)
+                # activate all activity if balance > 0
+                if user.balance > 0:
+                    taskWorker = TaskWorker.getInstance()
+                    taskWorker.activate_adv_activity(user.id)
+            except:
+                pass
 
-        Transaction.query.filter( and_(Transaction.transactionType==TRANSACTION_TYPE['DEPOSIT'], Transaction.transactionStatus==TRANSACTION_STATUS['HANDLED']) ).update({'transactionStatus': TRANSACTION_STATUS['PAID']})
         db.session.commit()
 
         app.logger.info("emit_create_transaction")

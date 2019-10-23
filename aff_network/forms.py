@@ -60,7 +60,7 @@ class CreateOfferForm(FlaskForm):
 class CreateOfferListForm(FlaskForm):
     previevText = StringField('Telegram message of publication', validators=[DataRequired()])
     taskType = SelectField('Publication type',
-                        choices=[('AUTOMATIC','AUTOMATIC'), ('MANUAL','MANUAL')])
+                        choices=[('0','AUTOMATIC'), ('1','MANUAL')])
     submit = SubmitField('choose offer')
 
 

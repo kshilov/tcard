@@ -158,19 +158,17 @@ class CategoryListAdv(db.Model):
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
 
     def __repr__(self):
-        return '<CategoryListAdv {}>'.format(self.categoryListType)
+        return '<CategoryListAdv>'
 
 
 class CategoryListAff(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    categoryListType = db.Column(db.String, index=True, nullable=False) # ???
-
     categoryId = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     channelId = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=False)
 
     def __repr__(self):
-        return '<CategoryListAff {}>'.format(self.categoryListType)
+        return '<CategoryListAff>'
 
 
 class MessageQueue(db.Model):
@@ -290,6 +288,11 @@ class Transaction(db.Model):
         transaction.__commit()
 
         return transaction
+
+    def paid(self):
+        self.status = TRANSACTION_STATUS['PAID']
+        
+        self.__commit()
 
     def subscribe(self):
         #t.update({'actionType': OFFER_TYPE['SUBSCRIBE']}, {'transactionStatus': TRANSACTION_STATUS['HANDLED']})
