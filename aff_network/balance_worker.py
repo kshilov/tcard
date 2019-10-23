@@ -1,8 +1,10 @@
+from handlers_init import *
 from models import User, Transaction
 from constants import *
 from sqlalchemy import and_, or_, func
 from flask_login import current_user
 from global_web_instances import app
+from celery_handlers import emit_deactivate_activity
 
 
 class BalanceWorker():
@@ -39,7 +41,7 @@ class BalanceWorker():
             try:
                 emit_deactivate_activity.apply_async(args=[user_id])
             except Exception as e:
-                app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
+                app.logger.info("action emit_deactivate_activity.apply_async:%s" % str(e))
             return False
         else:
             return True

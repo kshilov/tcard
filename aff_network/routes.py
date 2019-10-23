@@ -439,4 +439,6 @@ def create_tx_deposit():
         emit_handle_paid_transaction.apply_async()
     except Exception as e:
         app.logger.info("emit_handle_paid_transaction.apply_async:%s" % str(e))
+
+    return ''
     

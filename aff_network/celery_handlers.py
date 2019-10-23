@@ -1,11 +1,11 @@
 import traceback
+from handlers_init import *
 from global_celery_instances import celery 
 from task_worker import TaskWorker
 from models import Task, Transaction, User
 from global_web_instances import app, db
 from sqlalchemy import and_, or_
 from constants import *
-from action_worker import *
 
 
 @celery.task
@@ -82,11 +82,13 @@ def emit_handle_paid_transaction():
             user = User.query.filter_by(username=t.advId).first()
             user.replenish_balance(t.adv_amount)
 
+            # activate all activity if balance > 0
+            if user.balance > 0:
+                taskWorker = TaskWorker.getInstance()
+                taskWorker.activate_adv_activity(user.id)
+
         Transaction.query.filter( and_(Transaction.transactionType==TRANSACTION_TYPE['DEPOSIT'], Transaction.transactionStatus==TRANSACTION_STATUS['HANDLED']) ).update({'transactionStatus': TRANSACTION_STATUS['PAID']})
         db.session.commit()
-
-        # activate all activity if balance > 0
-        pass
 
         app.logger.info("emit_create_transaction")
     except Exception as e:
