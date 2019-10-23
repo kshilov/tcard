@@ -23,6 +23,7 @@ def emit_message_queue_create():
 
 @celery.task
 def emit_task_delete():
+    from task_worker import TaskWorker
     try:
         task_worker = TaskWorker.getInstance()
         task_worker.task_delete()
@@ -36,6 +37,7 @@ def emit_task_delete():
 
 @celery.task
 def emit_post_messages():
+    from task_worker import TaskWorker
     try:
         task_worker = TaskWorker.getInstance()
         task_worker.post_messages()
@@ -49,6 +51,7 @@ def emit_post_messages():
 
 @celery.task
 def emit_deactivate_activity(adv_id):
+    from task_worker import TaskWorker
     try:
         taskWorker = TaskWorker.getInstance()
         taskWorker.deactivate_adv_activity(adv_id)
@@ -111,3 +114,10 @@ def emit_track_subscribe():
     return True
 
 
+# Need to create periodic tasks, that will start periodicaly
+# link to example: https://github.com/borosuman/flask-celery-periodic-task/blob/master/app.py
+# NOT HERE, but to the place where celery configured
+#@celery.task(name ="periodic_task")
+#def parse_subscribers():
+#    print('Hi! from periodic_task')
+#    logger.info("Hello! from periodic task")

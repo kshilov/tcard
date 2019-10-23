@@ -42,9 +42,9 @@ class User(db.Model, UserMixin):
         self.__commit()
 
     def change_balance_action(self, price):
-        if self.role == 'AFFILIATE' and self.status == 'ACTIVE':
+        if self.role == 'AFFILIATE':
             self.balance = self.balance + price * (1 - SERVICE_FEE - USER_FEE)
-        elif self.role == 'ADVERTISER' and self.status == 'ACTIVE':
+        elif self.role == 'ADVERTISER':
             self.balance = self.balance - price
 
         self.__commit()
@@ -67,7 +67,7 @@ class Channel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     tgUrl = db.Column(db.String, index=True, unique=True, nullable=False)
-    status = db.Column(db.String, index=True, nullable=False) # active \ inactive
+    status = db.Column(db.Integer, index=True, nullable=False) # active \ inactive
 
     partnerId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     categoryListAff = db.relationship('CategoryListAff', backref='channel', lazy=True)
@@ -154,8 +154,6 @@ class Category(db.Model):
 class CategoryListAdv(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    categoryListType = db.Column(db.String, index=True, nullable=False) # ???
-
     categoryId = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     offerId = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
 
@@ -193,7 +191,11 @@ class MessageQueue(db.Model):
     def create_message(self, task, posting_time):
         self.taskId = task.id
         self.message_text = task.previevText
-        self.tgUrl = task.user.channels[0]
+        try:
+            self.tgUrl = task.user.channels[0].tgUrl
+        except:
+            pass
+
         self.status = MESSAGE_STATUS['NEW']
         self.posting_time = posting_time
 
@@ -223,8 +225,9 @@ class Transaction(db.Model):
 
     advId = db.Column(db.String, db.ForeignKey('user.username'), nullable=False) # tg_id
     affId = db.Column(db.String, db.ForeignKey('user.username'), nullable=True) # tg_id
-    userTgId = db.Column(db.String, index=True, nullable=True)
- 
+    userTgId = db.Column(db.Integer, index=True, nullable=True)
+    __table_args__=(UniqueConstraint('userTgId', 'taskId', name='unique_action'),)
+
     transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
 
     adv_amount = db.Column(db.Float, index=True, nullable=False)
@@ -255,7 +258,7 @@ class Transaction(db.Model):
         transaction.aff_amount = price * (1 - SERVICE_FEE - USER_FEE)
         transaction.user_amount = price * USER_FEE
 
-        transaction.currency = TRANSACTION_CURRENCY['GRAM']
+        transaction.currency = TRANSACTION_CURRENCY['RUB']
         transaction.transactionType = transactionType
         transaction.actionType = actionType
         transaction.transactionStatus = status
@@ -265,22 +268,35 @@ class Transaction(db.Model):
         return transaction
 
     @classmethod
-    def create_transaction_deposit(cls, advId, price):
+    def create_transaction_deposit(cls, user_dict):
+        adv_username = user_dict['username']
+        adv_amount = user_dict['amount']
+
         transaction = cls()
 
-        transaction.advId = advId
+        user = User.query.filter_by(username=adv_username).first()
+        if not user:
+            return 'No such user'
+        transaction.advId = user.username
 
-        transaction.adv_amount = price
+        transaction.adv_amount = adv_amount
         transaction.aff_amount = 0
         transaction.user_amount = 0
 
-        transaction.currency = TRANSACTION_CURRENCY['GRAM']
+        transaction.currency = TRANSACTION_CURRENCY['RUB']
         transaction.transactionType = TRANSACTION_TYPE['DEPOSIT']
         transaction.transactionStatus = TRANSACTION_STATUS['HANDLED']
 
         transaction.__commit()
 
         return transaction
+
+    def subscribe(self):
+        #t.update({'actionType': OFFER_TYPE['SUBSCRIBE']}, {'transactionStatus': TRANSACTION_STATUS['HANDLED']})
+        self.actionType = OFFER_TYPE['SUBSCRIBE']
+        self.transactionStatus = TRANSACTION_STATUS['HANDLED']
+
+        self.__commit()
 
     def change_status(self, status):
         self.transactionStatus = status

@@ -6,7 +6,7 @@ def make_celery(app):
     celery = Celery(app.name, 
                     broker=CELERY_BROKER,
                     )
-    
+
 #    celery.conf.update(app.config)
     TaskBase = celery.Task
 

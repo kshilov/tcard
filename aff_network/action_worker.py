@@ -39,20 +39,15 @@ class ActionWorker():
         # check adv balance
         allow_track = balance_worker.check_balance(offer.advertId)
 
-        if offer.offerType == 'SUBSCRIBE' and offer.status == 'ACTIVE':
+        if not allow_track or offer.status == 'INACTIVE':
+            return DEFAULT_REDIRECT_LINK           
+        elif offer.offerType == 'SUBSCRIBE':
             actionType = OFFER_TYPE['PRESUBSCRIBE']
-            if not allow_track:
-                return DEFAULT_REDIRECT_LINK
-
-            print("We are here before emit...")
-            # track subscribe in 60 seconds
             try:
-                emit_track_subscribe.apply_async(args=[], countdown=5)
+                emit_track_subscribe.apply_async(countdown=5)
             except Exception as e:
                 app.logger.info("action emit_track_subscribe.apply_async:%s" % str(e))
-
-        elif allow_track and offer.status == 'ACTIVE':
-                # change adv and aff balance
+        elif offer.offerType == 'CLICK':
                 user_aff = User.query.filter_by(id=task.affilId).first()
                 user_aff.change_balance_action(price)
                 user_adv = User.query.filter_by(id=offer.advertId).first()
@@ -72,20 +67,30 @@ class ActionWorker():
 
     def update_subscribers_list(self):
         balance_worker = BalanceWorker.getInstance()
-        transactions = Transaction.query.filter_by(actionType=OFFER_TYPE['PRESUBSCRIBE']).all()
-
+        transactions = Transaction.query.filter_by(actionType=OFFER_TYPE['PRESUBSCRIBE']).limit(100).all()
+        '''
         for t in transactions:
-            task = t.task
-            if self.track_subscriber(t.id, task, t.userTgId):
-                if balance_worker.change_balance(task.offer.advertId, task.offer.price):
-                    balance_worker.change_balance(task.affilId, task.offer.price)
+            try:
+                task = t.task
+                if self.track_subscriber(t.id, task, t.userTgId):
+                    if balance_worker.check_balance(task.offer.advertId):
+                        #balance_worker.change_balance(task.affilId, task.offer.price)
+                        adv_user = task.offer.user
+                        if adv_user:
+                            adv_user.change_balance_action(task.offer.price)
+                        
+                        aff_user =  task.user
+                        if aff_user:
+                            aff_user.change_balance_action(task.offer.price)
 
-                    t.update({'actionType': OFFER_TYPE['SUBSCRIBE']}, {'transactionStatus': TRANSACTION_STATUS['HANDLED']})
-                    #t.update({'transactionStatus': TRANSACTION_STATUS['HANDLED']})
+                        t.subscribe()
+            except:
+                pass
 
         db.session.commit()
-                
+        '''            
 
+    # Need to view in a table Subscribers and check if user exist
     def track_subscriber(self, transaction_id, task, user_tg_id):
         channels = self.get_list_of_channels
 

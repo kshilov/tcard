@@ -68,7 +68,7 @@ botId = '596029472:AAGMmAiJ6Oj7Kg3-wgn9HfGTbbtQSkXJhz8'
 
 botLink = ''
 actionLink = 'http://127.0.0.1:5000/action'
-DEFAULT_REDIRECT_LINK = '@our_channel_link'
+DEFAULT_REDIRECT_LINK = 't.me/our_channel_link'
 
 SERVICE_FEE = 0.25
 USER_FEE = 0.15

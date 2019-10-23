@@ -11,6 +11,7 @@ from flask_login import LoginManager
 import sys
 import logging
 import telethon
+from celery.schedules import crontab
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -42,6 +43,15 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tgKEYsecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['CELERYBEAT_SCHEDULE'] = {
+    # Executes every minute
+    'periodic_task-every-minute': {
+        'task': 'periodic_task',
+        'schedule': crontab(minute="*")
+    }
+}
+
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)

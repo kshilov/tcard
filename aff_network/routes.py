@@ -156,7 +156,7 @@ def channel():
             db.session.commit()
         else:
             flash('Please check Telegram URL', 'danger')
-        categoryListAff = CategoryListAff(categoryListType=form.categoryListAff.data, categoryId=form.categoryListAff.data, channelId=channel.id)
+        categoryListAff = CategoryListAff(categoryId=form.categoryListAff.data, channelId=channel.id)
         if categoryListAff:
             db.session.add(categoryListAff)
             db.session.commit()
@@ -276,6 +276,7 @@ def taskCheck():
 
 
 @app.route("/currentUserTasks", methods=['GET', 'POST'])
+#@app.route("/user/tasks", methods=['GET', 'POST'])
 @login_required
 @affiliate_access_level()
 def currentUserTasks():
@@ -284,6 +285,7 @@ def currentUserTasks():
 
    
 @app.route("/allTasks", methods=['GET', 'POST'])
+#@app.route("/tasks", methods=['GET', 'POST'])
 @login_required
 @moderator_access_level()
 def allTasks():
@@ -305,18 +307,25 @@ def messages():
 # /action?task_id=3&user_id=@GreenMrGreen
 @app.route("/action", methods=['GET', 'POST'])
 def action():
-    task_id = request.args.get('task_id')
-    user_tg_id = request.args.get('user_id')
-    #app.logger.info('--------------------------------')
-    #app.logger.info(user_tg_id)
-    #app.logger.info(task_id)
+    try:
+        task_id = request.args.get('task_id')
+        user_tg_id = request.args.get('user_id')
+        #app.logger.info('--------------------------------')
+        #app.logger.info(user_tg_id)
+        #app.logger.info(task_id)
 
-    task = Task.query.filter_by(id=task_id).first()
+        task = Task.query.filter_by(id=task_id).first()
+        if not task:
+            return redirect(DEFAULT_REDIRECT_LINK)
 
-    actionWorker = ActionWorker.getInstance()
-    link = actionWorker.create_transaction(task, user_tg_id)
+        actionWorker = ActionWorker.getInstance()
+        link = actionWorker.create_transaction(task, user_tg_id)
 
-    return redirect(url_for(link))
+        return redirect(link)
+    except Exception as e:
+        app.logger.info("action:%s" % str(e))
+        return redirect(DEFAULT_REDIRECT_LINK)
+ 
 
 
 @app.route("/transactions", methods=['GET', 'POST'])
@@ -429,11 +438,11 @@ def create_tx_deposit():
     if (len(users) <= 0):
         return ''
 
-    # users = [{username:22, amount:123}, {username:23, amount:22}]
+    # users = [{username:'user1', amount:12}, {username:'user2', amount:23}]
     # users = {'teast1': 500}
     ## u = key, users[u] = value
-    for u in users:
-        Transaction.create_transaction_deposit(u, users[u])
+    for u_dict in users:
+        Transaction.create_transaction_deposit(u_dict)
     
     try:
         emit_handle_paid_transaction.apply_async()
