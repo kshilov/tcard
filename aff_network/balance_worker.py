@@ -39,7 +39,7 @@ class BalanceWorker():
             try:
                 emit_deactivate_activity.apply_async(args=[user_id])
             except Exception as e:
-                app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
+                app.logger.info("action emit_deactivate_activity.apply_async:%s" % str(e))
             return False
         else:
             return True

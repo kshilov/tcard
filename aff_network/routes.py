@@ -302,7 +302,7 @@ def messages():
 
 
 # /action?task_id=1&user_id=1
-# /action?task_id=2&user_id=@GreenMrGreen
+# /action?task_id=3&user_id=@GreenMrGreen
 @app.route("/action", methods=['GET', 'POST'])
 def action():
     task_id = request.args.get('task_id')
@@ -439,4 +439,6 @@ def create_tx_deposit():
         emit_handle_paid_transaction.apply_async()
     except Exception as e:
         app.logger.info("emit_handle_paid_transaction.apply_async:%s" % str(e))
+
+    return ''
     

@@ -1,5 +1,4 @@
-from models import MessageQueue
-from models import Task
+from models import Task, Offer, MessageQueue
 from constants import *
 from sqlalchemy import and_, or_
 from global_web_instances import app, db
@@ -79,16 +78,28 @@ class TaskWorker():
  
 
     def deactivate_adv_activity(self, adv):
-        offers = Offer.query.filter_by(advertId=adv).all()
         Offer.query.filter_by(advertId=adv).update({'status': 'INACTIVE'})
+        offers = Offer.query.filter_by(advertId=adv).all()
 
         for offer in offers:
             Task.query.filter_by(offerId=offer.id).update({'status': TASK_STATUS['PAUSED']})
-            tasks = Task.query.filter_by(offerId=offer.id).first()
+            tasks = Task.query.filter_by(offerId=offer.id).all()
         
             for task in tasks:
-                MessageQueue.query.filter_by(taskId=task.id).first().change_status(MESSAGE_STATUS['DEACTIVATED'])
+                MessageQueue.query.filter_by(taskId=task.id).update({'status': MESSAGE_STATUS['DEACTIVATED']})
             
         db.session.commit()
 
 
+    def activate_adv_activity(self, adv):
+        Offer.query.filter_by(advertId=adv).update({'status': 'ACTIVE'})
+        offers = Offer.query.filter_by(advertId=adv).all()
+
+        for offer in offers:
+            Task.query.filter_by(offerId=offer.id).update({'status': TASK_STATUS['QUEUED']})
+            tasks = Task.query.filter_by(offerId=offer.id).all()
+        
+            for task in tasks:
+                MessageQueue.query.filter_by(taskId=task.id).update({'status': MESSAGE_STATUS['NEW']})
+            
+        db.session.commit()

@@ -1,10 +1,9 @@
+from handlers_init import *
 from models import Task, MessageQueue, Transaction
 from constants import *
 from sqlalchemy import and_, or_
 from balance_worker import *
 from telethon import TelegramClient
-from celery_handlers import *
-
 from global_web_instances import app
 
 
@@ -68,48 +67,4 @@ class ActionWorker():
             app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
         
         return link
-
-
-    def update_subscribers_list(self):
-        balance_worker = BalanceWorker.getInstance()
-        transactions = Transaction.query.filter_by(actionType=OFFER_TYPE['PRESUBSCRIBE']).all()
-
-        for t in transactions:
-            task = t.task
-            if self.track_subscriber(t.id, task, t.userTgId):
-                if balance_worker.change_balance(task.offer.advertId, task.offer.price):
-                    balance_worker.change_balance(task.affilId, task.offer.price)
-
-                    t.update({'actionType': OFFER_TYPE['SUBSCRIBE']}, {'transactionStatus': TRANSACTION_STATUS['HANDLED']})
-                    #t.update({'transactionStatus': TRANSACTION_STATUS['HANDLED']})
-
-        db.session.commit()
-                
-
-    def track_subscriber(self, transaction_id, task, user_tg_id):
-        channels = self.get_list_of_channels
-
-        # channel_name = 'TestChannel12358' # test
-        channel_name = task.offer.tgLink
-        # choose the one that I want list users from
-        channel = channels[channel_name]
-
-        # get all users
-        for user in client.get_participants(channel):
-           # print(user.id, user.first_name, user.last_name, user.username)
-           if user.id == user_tg_id:
-               return True
-        return False
-
-
-    def get_list_of_channels(self):
-        client = TelegramClient(CURRENT_SESSION_NAME, API_ID, API_HASH).start()
-
-        # get all channels that I can access
-        channels = {d.entity.username: d.entity
-                   for d in client.get_dialogs()
-                   if d.is_channel}
-
-        return channels
-
 
