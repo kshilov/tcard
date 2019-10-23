@@ -2,6 +2,7 @@ from models import MessageQueue
 from models import Task
 from constants import *
 from sqlalchemy import and_, or_
+from global_web_instances import app, db
 
 import telebot
 
@@ -67,7 +68,7 @@ class TaskWorker():
             message = task.previevText + link
 
             # send msg in all channels
-            channels = Channel.query.filter(and_(partnerId=task.affilId, status='active')).all()
+            channels = Channel.query.filter(and_(partnerId=task.affilId, status='ACTIVE')).all()
             for channel in channels: 
                 if channel.categoryListAff.category.id == task.offer.categoryListAdv.category.id:
                     chatId = -1001321811797 # test
@@ -78,10 +79,12 @@ class TaskWorker():
  
 
     def deactivate_adv_activity(self, adv):
-        #offers = Offer.query.filter_by(advertId=adv).all()
-        offers = Offer.query.filter_by(advertId=adv).update({'status': OFFER_STATUS['INACTIVE']}).all()
+        offers = Offer.query.filter_by(advertId=adv).all()
+        Offer.query.filter_by(advertId=adv).update({'status': 'INACTIVE'})
+
         for offer in offers:
-            tasks = Task.query.filter_by(offerId=offer.id).update({'status': TASK_STATUS['PAUSED']}).all()
+            Task.query.filter_by(offerId=offer.id).update({'status': TASK_STATUS['PAUSED']})
+            tasks = Task.query.filter_by(offerId=offer.id).first()
         
             for task in tasks:
                 MessageQueue.query.filter_by(taskId=task.id).first().change_status(MESSAGE_STATUS['DEACTIVATED'])

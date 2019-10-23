@@ -2,9 +2,10 @@ import traceback
 from global_celery_instances import celery 
 from task_worker import TaskWorker
 from models import Task, Transaction, User
-from global_web_instances import app
+from global_web_instances import app, db
 from sqlalchemy import and_, or_
 from constants import *
+from action_worker import *
 
 
 @celery.task
@@ -81,10 +82,27 @@ def emit_handle_paid_transaction():
             user = User.query.filter_by(username=t.advId).first()
             user.replenish_balance(t.adv_amount)
 
-        transactions.update({'transactionStatus': TRANSACTION_STATUS['PAID']}).all()
+        Transaction.query.filter( and_(Transaction.transactionType==TRANSACTION_TYPE['DEPOSIT'], Transaction.transactionStatus==TRANSACTION_STATUS['HANDLED']) ).update({'transactionStatus': TRANSACTION_STATUS['PAID']})
+        db.session.commit()
+
+        # activate all activity if balance > 0
+        pass
 
         app.logger.info("emit_create_transaction")
     except Exception as e:
         app.logger.info("emit_handle_paid_transaction EXCEPTION traceback: {0}".format(traceback.format_exc()))
+
+    return True
+
+
+@celery.task
+def emit_track_subscribe():
+    try:
+        actionWorker = ActionWorker.getInstance()
+        actionWorker.update_subscribers_list()
+
+        app.logger.info("emit_track_subscribe")
+    except Exception as e:
+        app.logger.info("emit_track_subscribe EXCEPTION traceback: {0}".format(traceback.format_exc()))
 
     return True

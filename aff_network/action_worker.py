@@ -39,10 +39,17 @@ class ActionWorker():
         # check adv balance
         allow_track = balance_worker.check_balance(offer.advertId)
 
-        if offer.offerType == 'SUBSCRIBE':
+        if offer.offerType == 'SUBSCRIBE' and offer.status == 'ACTIVE':
             actionType = OFFER_TYPE['PRESUBSCRIBE']
             if not allow_track:
                 return DEFAULT_REDIRECT_LINK
+
+            # track subscribe in 60 seconds
+            try:
+                emit_track_subscribe.apply_async(args=[], countdown=5)
+            except Exception as e:
+                app.logger.info("action emit_track_subscribe.apply_async:%s" % str(e))
+
         elif allow_track and offer.status == 'ACTIVE':
                 # change adv and aff balance
                 user_aff = User.query.filter_by(id=task.affilId).first()
@@ -55,16 +62,14 @@ class ActionWorker():
 
         link = offer.tgLink
 
-        #try:
-        emit_create_transaction.apply_async(args=[task.id, user_tg_id, transactionType, actionType, transactionStatus, price])
-        #emit_create_transaction.delay(task.id, user_tg_id, transactionType, actionType, transactionStatus, price)
-        #except Exception as e:
-            #app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
+        try:
+            emit_create_transaction.apply_async(args=[task.id, user_tg_id, transactionType, actionType, transactionStatus, price])
+        except Exception as e:
+            app.logger.info("action emit_create_transaction.apply_async:%s" % str(e))
         
         return link
 
 
-    # celery
     def update_subscribers_list(self):
         balance_worker = BalanceWorker.getInstance()
         transactions = Transaction.query.filter_by(actionType=OFFER_TYPE['PRESUBSCRIBE']).all()
@@ -77,9 +82,9 @@ class ActionWorker():
 
                     t.update({'actionType': OFFER_TYPE['SUBSCRIBE']}, {'transactionStatus': TRANSACTION_STATUS['HANDLED']})
                     #t.update({'transactionStatus': TRANSACTION_STATUS['HANDLED']})
-                    db.session.commit()
-                
 
+        db.session.commit()
+                
 
     def track_subscriber(self, transaction_id, task, user_tg_id):
         channels = self.get_list_of_channels
@@ -89,7 +94,7 @@ class ActionWorker():
         # choose the one that I want list users from
         channel = channels[channel_name]
 
-        # get all the users
+        # get all users
         for user in client.get_participants(channel):
            # print(user.id, user.first_name, user.last_name, user.username)
            if user.id == user_tg_id:
@@ -106,13 +111,5 @@ class ActionWorker():
                    if d.is_channel}
 
         return channels
-
-   
-    def deposit_transaction(self):
-        transactions = Transaction.query.filter( and_(transactionType=TRANSACTION_TYPE['DEPOSIT'], transactionStatus=TRANSACTION_STATUS['HANDLED']) ).all()
-        for t in transactions:
-            User.query.filter_by(username=t.advId).update({'balance': balance + t.adv_amount})
-            t.update({'transactionStatus': TRANSACTION_STATUS['PAID']})
-        db.session.commit()
 
 

@@ -301,9 +301,10 @@ def messages():
     return render_template('messages.html', title='Messages', messages=messages)   
 
 
+# /action?task_id=1&user_id=1
+# /action?task_id=2&user_id=@GreenMrGreen
 @app.route("/action", methods=['GET', 'POST'])
 def action():
-    # /action?task_id=1&user_id=1
     task_id = request.args.get('task_id')
     user_tg_id = request.args.get('user_id')
     #app.logger.info('--------------------------------')
