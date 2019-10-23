@@ -9,6 +9,7 @@ from constants import *
 
 @celery.task
 def emit_message_queue_create():
+    from task_worker import TaskWorker
     try:
         task_worker = TaskWorker.getInstance()
         task_worker.message_queue_create()

@@ -111,7 +111,7 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     status = db.Column(db.Integer, index=True, default=0) # new \ approved \ queued \ paused \ inactive
-    taskType = db.Column(db.String, default=0) # AUTOMATIC \ MANUAL
+    taskType = db.Column(db.Integer, default=0) # AUTOMATIC \ MANUAL
 
     previevText = db.Column(db.String, index=True, nullable=False)
 
@@ -120,6 +120,7 @@ class Task(db.Model):
     __table_args__=(UniqueConstraint('affilId', 'offerId', name='unique_offer'),)
 
     message_queues = db.relationship('MessageQueue', backref='task', lazy=True)
+    transactions = db.relationship('Transaction', backref='task', lazy=True)
 
     def __repr__(self):
         return '<Task {}>'.format(self.id)
