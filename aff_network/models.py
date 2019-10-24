@@ -10,13 +10,53 @@ def load_user(user_id):
     #db.drop_all()
     #db.create_all()
     return User.query.get(int(user_id))
+
+
+class BotUser(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    tgId = db.Column(db.Integer, index=True, nullable=False)
+    #username = db.Column(db.String, db.ForeignKey('user.username'), nullable=False)
+    #username = db.relationship('User', backref='botUser', lazy=True)
+    username = db.Column(db.String, index=True, unique=True, nullable=False)
+
+    status = db.Column(db.Integer, default=BOT_USER_STATUS['NEW']) # new / active
+
+    def __repr__(self):
+        return '<BotUser {}>'.format(self.id)
+
+    @classmethod
+    def create_bot_user(cls, user_dict):
+        botUser = cls()
+
+        botUser.username = user_dict['username']
+        botUser.tgId = user_dict['tgId']
+
+        botUser.__commit()
+
+        return botUser
+
+    def change_status(self, status):
+        self.status = status
+        
+        self.__commit()
+
+    def __commit(self):
+        exist = BotUser.query.filter_by(id=self.id).first()
+
+        if not exist:
+            db.session.add(self)
+        
+        db.session.commit()
    
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
     username = db.Column(db.String, index=True, unique=True, nullable=False) # unique user id in telegram
-    password = db.Column(db.String, nullable=False)
+    #username = db.relationship('BotUser', backref='user', lazy=True)
+    #username = db.Column(db.String, db.ForeignKey('botUser.username'), nullable=False)
+    password = db.Column(db.String, nullable=True)
 
     role = db.Column(db.Integer, nullable=False) # advert. \ affil. \ moder. \ admin
     status = db.Column(db.String, index=True, nullable=False) # active \ inactive
@@ -35,9 +75,26 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
-    # ATTENTION: you should check old_password=current_password before calling this method
+    # ATTENTION: you should check old_password==current_password before calling this method
     def change_password(self, new_password):
         self.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
+        self.__commit()
+
+    @classmethod
+    def add_user(cls, username, role):
+        user = cls()
+
+        user.username = username
+        user.role = role
+        user.status = 'INACTIVE'
+
+        user.__commit()
+        return user
+
+    def register_user(self, password):
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+        self.status = 'ACTIVE'
 
         self.__commit()
 
@@ -295,7 +352,6 @@ class Transaction(db.Model):
         self.__commit()
 
     def subscribe(self):
-        #t.update({'actionType': OFFER_TYPE['SUBSCRIBE']}, {'transactionStatus': TRANSACTION_STATUS['HANDLED']})
         self.actionType = OFFER_TYPE['SUBSCRIBE']
         self.transactionStatus = TRANSACTION_STATUS['HANDLED']
 
@@ -316,4 +372,5 @@ class Transaction(db.Model):
 
     def toDict(self):
         return { c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs }
+
 

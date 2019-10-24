@@ -68,12 +68,40 @@ def admin_access_level():
 
 @app.route("/about")
 def about():
-    #app.logger.info("00000 *******")
     return render_template('about.html', title='About')
 
 @app.route("/access_error_page")
 def access_error_page():
     return render_template('access_error_page.html', title='access_error_page')
+
+
+# /bot/register?username=test2
+@app.route("/bot/register", methods=['GET', 'POST'])
+def bot_register():
+    if current_user.is_authenticated:
+        return redirect(url_for('account'))
+
+    form = BotRegistrationForm()
+
+    try:
+        username = request.args.get('username')
+        user = User.query.filter_by(username=username).first()
+        botUser = BotUser.query.filter_by(username=username).first()
+
+        if not user or botUser.status != BOT_USER_STATUS['ACTIVE']:
+            return redirect(DEFAULT_REDIRECT_LINK)
+
+        if form.validate_on_submit():
+            user.register_user(password=form.password.data)
+
+            flash('Your account has been created! You are now able to log in', 'success')
+            return redirect(url_for('login'))
+
+    except Exception as e:
+        app.logger.info("bot_register:%s" % str(e))
+        return redirect(DEFAULT_REDIRECT_LINK)
+
+    return render_template('bot_register.html', title='Bot_Register', form=form, user=user)
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -115,6 +143,36 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route("/new/bot_users_list", methods=['GET', 'POST'])
+@login_required
+@moderator_access_level()
+def new_bot_users_list():
+    botUsers = BotUser.query.filter_by(status=BOT_USER_STATUS['NEW']).all()
+
+    form = AddUserForm()
+    bot_user_id = 'none_id'
+    if form.validate_on_submit():
+        bot_user_id = request.form.get('submit')
+        botUser = BotUser.query.filter_by(id=bot_user_id).first()
+        User.add_user(botUser.username, form.role.data)
+
+        botUser.change_status(BOT_USER_STATUS['ACTIVE'])
+
+        flash('User added', 'success')
+        return redirect(url_for('new_bot_users_list'))
+
+    return render_template('new_bot_users_list.html', title='new_bot_users_list', form=form, botUsers=botUsers)   
+
+
+@app.route("/active/bot_users_list", methods=['GET', 'POST'])
+@login_required
+@moderator_access_level()
+def active_bot_users_list():
+    botUsers = BotUser.query.filter_by(status=BOT_USER_STATUS['ACTIVE']).all()
+
+    return render_template('active_bot_users_list.html', title='active_bot_users_list', botUsers=botUsers)   
+
+
 @app.route("/users_list", methods=['GET', 'POST'])
 @login_required
 @moderator_access_level()
@@ -139,6 +197,7 @@ def account():
         else:
             flash('Change Unsuccessful. Please check your old password', 'danger')
     return render_template('account.html', title='Account', form=form)
+
 
 @app.route("/channel", methods=['GET', 'POST'])
 @affiliate_access_level()
@@ -259,7 +318,6 @@ def taskCheck():
     task_id = 'none_task'
     if form.validate_on_submit():
         task_id = request.form.get('submit')
-        #task_id = 1 # test
         task = Task.query.filter_by(id=task_id).first()
         task.change_status(TASK_STATUS['APPROVED'])
 
@@ -430,6 +488,7 @@ def update_messages_published():
     return ''
 
 
+#r = requests.post('http://127.0.0.1:5000/balance/create/transactions/deposit', json = {"test1": 500})
 @app.route("/balance/create/transactions/deposit", methods=['POST'])
 # @login_required
 # @service_access_level
@@ -440,7 +499,6 @@ def create_tx_deposit():
 
     # users = [{username:'user1', amount:12}, {username:'user2', amount:23}]
     # users = {'teast1': 500}
-    ## u = key, users[u] = value
     for u_dict in users:
         Transaction.create_transaction_deposit(u_dict)
     
@@ -450,4 +508,42 @@ def create_tx_deposit():
         app.logger.info("emit_handle_paid_transaction.apply_async:%s" % str(e))
 
     return ''
+
+
+#r = requests.post('http://127.0.0.1:5000/create/botUser', json = [{'username':'test1', 'tgId':123456789}])
+@app.route("/create/botUser", methods=['POST'])
+# @login_required
+# @service_access_level
+def create_botUser():
+    users = request.json
+    if (len(users) <= 0):
+        return ''
+
+    # users = [{username:'user1', tgId:12}, {username:'user2', tgId:23}]
+    # users = {'teast1': 123}
+    for u_dict in users:
+        BotUser.create_bot_user(u_dict)
+    
+    return ''
+
+
+@app.route("/get/roles", methods=['GET', 'POST'])
+# @login_required
+# @service_access_level
+def get_roles():
+    try:
+        users = request.json
+        if (len(users) <= 0):
+            return flask.jsonify([])
+
+        all_users = User.query.filter(User.username.in_(users)).all()
+   
+        usersArr = []
+        for u in all_users:
+            usersArr.append(u.toDict()) 
+
+        return flask.jsonify(usersArr)
+    except Exception as e:
+        app.logger.info("get_roles:%s" % str(e))
+        return flask.jsonify([])
     

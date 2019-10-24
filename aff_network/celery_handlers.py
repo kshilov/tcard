@@ -42,9 +42,9 @@ def emit_post_messages():
         task_worker = TaskWorker.getInstance()
         task_worker.post_messages()
 
-        app.logger.info("emit_post_message")
+        app.logger.info("emit_post_messages")
     except Exception as e:
-        app.logger.info("emit_post_message EXCEPTION traceback: {0}".format(traceback.format_exc()))
+        app.logger.info("emit_post_messages EXCEPTION traceback: {0}".format(traceback.format_exc()))
 
     return True
 
@@ -123,4 +123,4 @@ def emit_track_subscribe():
 #@celery.task(name ="periodic_task")
 #def parse_subscribers():
 #    print('Hi! from periodic_task')
-#    logger.info("Hello! from periodic task")
+#    app.logger.info("Hello! from periodic task")

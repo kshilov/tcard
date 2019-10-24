@@ -60,6 +60,11 @@ TRANSACTION_STATUS = {
     'PAID' : 2
 }
 
+BOT_USER_STATUS = {
+    'NEW'  : 0,
+    'ACTIVE' : 1
+}
+
 from datetime import datetime
 #postTime = '2019-10-11 18:22:56'
 postTime = datetime(2019, 10, 11, 18, 22, 56)

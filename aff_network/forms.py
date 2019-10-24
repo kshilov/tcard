@@ -21,6 +21,14 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('That username is taken. Please choose a different one.')
 
 
+class BotRegistrationForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password',
+                                     validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Sign Up')
+
+
+
 class LoginForm(FlaskForm):
     username = StringField('Username',
                            validators=[DataRequired(), Length(min=2, max=32)])
@@ -78,3 +86,7 @@ class TaskCheckForm(FlaskForm):
     submit = SubmitField('Accept task')
 
 
+class AddUserForm(FlaskForm):
+    role = SelectField('Role',
+                        choices=[('ADVERTISER','ADVERTISER'), ('AFFILIATE','AFFILIATE'), ('MODERATOR','MODERATOR'), ('ADMIN','ADMIN')])
+    submit = SubmitField('Add user')
