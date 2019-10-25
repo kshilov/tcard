@@ -3,9 +3,9 @@
 const sendMainMenu = require('../helpers/sendMainMenu');
 const db = require('../models');
 
-function setupMenu(bot) {
+async function init(bot) {
 
-    bot.command('menu',async ctx => {
+    bot.command('menu', async ctx => {
         return sendMainMenu(ctx);
     })
 }
@@ -13,6 +13,6 @@ function setupMenu(bot) {
 
   // Exports
 module.exports = {
-    setupMenu
+    init
 }
   

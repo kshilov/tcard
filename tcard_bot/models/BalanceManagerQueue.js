@@ -1,14 +1,14 @@
 'use strict';
 
-const {SyncDataStatus} = require("../helpers/constants");
+const {QueueStatus} = require("../helpers/constants");
 
 /* 
 We store list of aggregated transactions in Sync. 
-Then each list we split and stor each transaction in SyncTransaction
+Then each list we split and stor each transaction in BalanceManagerQueue
 The unique key aggregated_transaction_id
 */
 module.exports = function(sequelize, DataTypes) {
-	var SyncTransaction = sequelize.define('SyncTransaction', {
+	var BalanceManagerQueue = sequelize.define('BalanceManagerQueue', {
 		id: {
 			type: DataTypes.INTEGER,
 			allowNull: false,
@@ -45,27 +45,27 @@ module.exports = function(sequelize, DataTypes) {
 		schema: 'public'
 	});
 	
-	SyncTransaction.prototype.done = async function () {
-		this.status = SyncDataStatus.done;
+	BalanceManagerQueue.prototype.done = async function () {
+		this.status = QueueStatus.done;
 		this.save()
 	} 
 
-	SyncTransaction.prototype.sync = async function () {
-		this.status = SyncDataStatus.synced;
+	BalanceManagerQueue.prototype.sync = async function () {
+		this.status = QueueStatus.synced;
 		this.save()
 	} 
 
-	SyncTransaction.prototype.get_data = async function() {
+	BalanceManagerQueue.prototype.get_data = async function() {
 		return JSON.parse(this.data);
 	}
 
-	SyncTransaction.prototype.try_to_finish = async function(){
+	BalanceManagerQueue.prototype.try_to_finish = async function(){
 		if (this.count >= 3){
 			this.done()
 		}
 	}
 
-	SyncTransaction.prototype.add_paid = function (username) {
+	BalanceManagerQueue.prototype.add_paid = function (username) {
 		var paid_usernames = JSON.parse(this.paid_usernames);
 		if (!paid_usernames){
 			paid_usernames = [];
@@ -78,7 +78,7 @@ module.exports = function(sequelize, DataTypes) {
 	}
 
 
-	SyncTransaction.prototype.already_paid = function (username) {
+	BalanceManagerQueue.prototype.already_paid = function (username) {
 		var paid_usernames = JSON.parse(this.paid_usernames);
 		if (!paid_usernames){
 			return false;
@@ -91,9 +91,9 @@ module.exports = function(sequelize, DataTypes) {
 		return false;
 	}
 
-	SyncTransaction.sync_list = async function(aggregated_transaction_ids){
-		SyncTransaction.update(
-			{status: SyncDataStatus.synced},
+	BalanceManagerQueue.sync_list = async function(aggregated_transaction_ids){
+		BalanceManagerQueue.update(
+			{status: QueueStatus.synced},
 			{where : { 
 					aggregated_transaction_id : {
 						$in : aggregated_transaction_ids
@@ -102,30 +102,10 @@ module.exports = function(sequelize, DataTypes) {
 		})
 	}
 
-
-	SyncTransaction.ready_to_sync_array = async function() {
-		var res =  await SyncTransaction.findAll({
-			attributes: ['aggregated_transaction_id'], 
-			raw: true,
+	BalanceManagerQueue.need_to_be_done = async function() {
+		var res = await BalanceManagerQueue.findAll({
 			where : {
-				count : 3,
-				status : SyncDataStatus.done
-			},
-			limit : 50
-		})
-
-		var arr = []
-        res.forEach(element => {
-            arr.add(element.aggregated_transaction_id)
-        });
-
-		return arr;
-	}
-
-	SyncTransaction.need_to_be_done = async function() {
-		var res = await SyncTransaction.findAll({
-			where : {
-				status : SyncDataStatus.new,
+				status : QueueStatus.new,
 				count : {
 					$lt : 3
 				}
@@ -137,5 +117,5 @@ module.exports = function(sequelize, DataTypes) {
 	}
 
 
-	return SyncTransaction;
+	return BalanceManagerQueue;
 };

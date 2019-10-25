@@ -6,7 +6,7 @@ var db = require('../models');
 var { bot, startBot, secretPath } = require('../init/bot')
 var { ton_client, connectTon } = require('../init/ton')
 
-var {setupAffSyncManager} = require('../affnetworkmanager/AffSyncManager')
+var {setupRemoteServiceManager} = require('../affnetworkmanager/RemoteServiceManager')
 
 
 //db.sequelize.sync({force: true})
@@ -23,7 +23,7 @@ async function main(){
 
 // await setupI18N(bot)
 
-var aff_sync_manager = await setupAffSyncManager(ton_client, db, bot)
+var aff_sync_manager = await setupRemoteServiceManager(ton_client, db, bot)
 aff_sync_manager.init()
 
 // Let's start the bot

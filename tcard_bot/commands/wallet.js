@@ -3,7 +3,11 @@
 const db = require('../models');
 const sendWallet = require('../helpers/sendWallet')
 
-function setupWallet(bot, ton) {
+const {providers} = require("../providers")
+
+const ton = providers.ton.ton
+
+function init(bot) {
 
     bot.command('wallet', async ctx => {
         const telegram_id = ctx.from.id;
@@ -12,10 +16,6 @@ function setupWallet(bot, ton) {
 
         const wallet = await user.get_wallet()
 
-        if (!wallet.deployed()){
-            await wallet.deploy_wallet(ton)
-        }
-
         return sendWallet(ctx);
     })
 }
@@ -23,6 +23,6 @@ function setupWallet(bot, ton) {
 
   // Exports
 module.exports = {
-    setupWallet,
+    init
 }
   

@@ -1,14 +1,21 @@
 'use strict';
 
-const { ton_subcribe_incomming_messages } = require("./tonMethods");
+/*
+const { ton_subcribe_incomming_messages } = require("../helpers/tonMethods");
 
 let notification_manager;
 
-const {ActionType, ActionStatus} = require("./constants");
+const {ActionType, ActionStatus} = require("../helpers/constants");
 
 const { i18n } = require('../middlewares/i18n')
 
-class NotificationManager{
+const {providers} = require('../providers')
+
+const ton = providers.ton.ton
+const bot = providers.bot.bot
+const db = require('../models')
+
+class TonWalletNotificationManager{
        
     constructor(ton, db, bot){
         this.ton = ton;
@@ -62,7 +69,7 @@ class NotificationManager{
     }
 
     async _actions_subscribe() {
-        this.db.Action.afterCreate( action => {
+        this.db.TonWalletTransaction.afterCreate( action => {
             this._handle_action(action)
         })
     }
@@ -140,7 +147,7 @@ class NotificationManager{
 
 
     async log_wallet_send(user, to_username, message){
-        action = await this.db.Action.build(
+        action = await this.db.TonWalletTransaction.build(
             {
                 type: ActionType.wallet_send,
                 message: message,
@@ -160,7 +167,7 @@ class NotificationManager{
     }
 
     async listen_incoming_transactions(){
-        /*
+        
         const format_t = `
             id
             status
@@ -213,7 +220,7 @@ class NotificationManager{
             this._handle_incoming_transaction(e, d)
         });
 
-        */
+        
     }
 
     async resubscribe() {
@@ -292,7 +299,7 @@ class NotificationManager{
             return;
         }
 
-        var action = await this.db.Action.create(
+        var action = await this.db.TonWalletTransaction.create(
             {
                 status : ActionStatus.new,
                 type : ActionType.wallet_recieved,
@@ -308,18 +315,19 @@ class NotificationManager{
 }
 
 
-async function setupNotificationManager(ton, db, bot) {
-    
-    if (notification_manager){
-        return notification_manager;
+async function init() {
+
+    if (!notification_manager){
+        notification_manager = new TonWalletNotificationManager(ton, db, bot);
     }
 
-    notification_manager = new NotificationManager(ton, db, bot);
-    
-    return notification_manager;
+    await notification_manager.init()
+
 }
 
 
 module.exports = {
-    setupNotificationManager
+    init
 }
+
+*/

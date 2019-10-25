@@ -2,32 +2,35 @@
 
 const tx_polling_interval = process.env.TX_POLLING_INTERVAL;
 
-const {SyncDataStatus, SyncStatus, SyncType} = require("../helpers/constants");
+const {QueueStatus, QueueType} = require("../helpers/constants");
 
 const {deposit_grams} = require("../helpers/tonMethods");
 
 const TO_ADDRESS = 'ce709b5bfca589eb621b5a5786d0b562761144ac48f59e0b0d35ad0973bcdb86';
 
+const db = require('../models')
+
+
 class BalanceManager {
-    constructor(ton, db, bot){
-        this.ton = ton;
+    constructor(){
         this.db = db;
-        this.bot = bot;
 
         this.tx_ids = new Set([]);
 
         this._action_polling_inprogress = false;
         this._tx_polling_inprogress = false;
+        console.log("... BalanceManager created, waiting for init")
     }
 
     async init(){
         setInterval(async ()=> {
-            this._polling_acitons()
+            this._polling_actions()
             this._polling_transactions()
         }, tx_polling_interval) // we will start polling once an hour to fix if someone broken
+        console.log("STEP %d - SUCCESS: balancemanager.init success", SETUP_STEPS['balancemanager'])
     }
 
-    async _polling_acitons() {
+    async _polling_actions() {
         if (this._action_polling_inprogress){
             return;
         }else{
@@ -35,10 +38,10 @@ class BalanceManager {
         }
 
         try {
-            var new_sync = await this.db.Sync.findAll({
+            var new_sync = await this.db.RemoteServiceManagerQueue.findAll({
                 where :{
-                    status : SyncStatus.new,
-                    type : SyncType.transactions
+                    status : QueueStatus.new,
+                    type : QueueType.transactions
                 },
                 limit : 50
             })
@@ -52,18 +55,18 @@ class BalanceManager {
 
                  message.array.forEach(async (transaction) => {
                     try {
-                        await this.db.SyncTransaction.create({
+                        await this.db.BalanceManagerQueue.create({
                             aggregated_transaction_id : transaction.id,
                             action_id : action.id,
-                            status : SyncDataStatus.new,
+                            status : QueueStatus.new,
                             data : transaction
                         })  
                     }catch(error){
-                        console.log("Can't create SyncTransaction:", error)
+                        console.log("Can't create BalanceManagerQueue:", error)
                     }
                 });
                 
-                action.handled()
+                action.done()
             });
         }catch(error){
             this._action_polling_inprogress = false;
@@ -82,7 +85,7 @@ class BalanceManager {
         }
 
         try {
-            var new_txs = await this.db.SyncTransaction.need_to_be_done()
+            var new_txs = await this.db.BalanceManagerQueue.need_to_be_done()
 
             if (!new_txs){
                 throw "There is no new transactions";
@@ -102,7 +105,7 @@ class BalanceManager {
                     await this._decrease_balance(sync_tx, adv_user, data.adv_amount)
 
                 }catch(error){
-                    console.log("Can't handle SyncTransaction:", error)
+                    console.log("Can't handle BalanceManagerQueue:", error)
                 }
 
                 sync_tx.try_to_finish()
@@ -125,11 +128,17 @@ class BalanceManager {
             return;
         }
 
-        var wallet = await user.get_wallet()
+        var to_username = user.username;
 
         try{
-            await deposit_grams(this.ton, wallet.wallet_address, amount);
-            await tx.add_paid(user.username)
+            var data = {
+                message : 'affiliate commision'
+            }
+            var wallet_tx = await this.db.WalletTransaction.deposit(to_username, amount, data)
+            if (wallet_tx < 0){
+                throw "Can't deposot on WalletTransaction"
+            }
+            await tx.add_paid(to_username)
         }catch(error){
             console.log("Can't deposit grams:", error)
         }
@@ -145,25 +154,50 @@ class BalanceManager {
         }
 
         amount = amount * -1;
-        var wallet = await user.get_wallet()
 
         try{
-            await wallet.send_grams(this.ton, TO_ADDRESS, amount)
-            await tx.add_paid(user.username)
+            var data = {
+                message : 'advert commision'
+            }
+            var withdraw_from_username = user.username
+            var wallet_tx = await this.db.WalletTransaction.withdraw(withdraw_from_username, amount, data)
+            if (wallet_tx < 0){
+                throw "Can't deposot on WalletTransaction"
+            }
+            await tx.add_paid(withdraw_from_username)
         }catch(error){
             console.log("Can't deposit grams:", error)
         }
-    }    
+    }
+    
+    async ready_to_sync_array(){
+        var res =  await this.db.BalanceManagerQueue.findAll({
+			attributes: ['aggregated_transaction_id'], 
+			raw: true,
+			where : {
+				count : 3,
+				status : QueueStatus.done
+			},
+			limit : 50
+		})
+
+		var arr = []
+        res.forEach(element => {
+            arr.add(element.aggregated_transaction_id)
+        });
+
+		return arr;
+    }
 }
 
-const balance_manager = undefined;
+let balance_manager = undefined;
 
-async function setupBalanceManager(ton, db, bot){
+async function setupBalanceManager(){
     if (balance_manager){
         return balance_manager;
     }
 
-    return new BalanceManager(ton, db, bot);
+    return new BalanceManager();
 }
 
 module.exports = {

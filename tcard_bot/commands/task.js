@@ -3,7 +3,7 @@
 const db = require('../models');
 const AFF_LINK = 'http://127.0.0.1:5000/action'
 
-function setupTask(bot) {
+async function init(bot) {
     // Start command
     bot.command('task', async ctx => {
         const args = message.text.split(/ +/)
@@ -32,5 +32,5 @@ async function sendTaskLink(ctx, task_url) {
   
   // Exports
 module.exports = {
-    setupTask
+    init
 }

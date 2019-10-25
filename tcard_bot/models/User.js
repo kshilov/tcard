@@ -51,33 +51,36 @@ module.exports = function(sequelize, DataTypes) {
 All methods start here
 */
 	User.associate = function(models) {
-		User.hasOne(models.TonWallet, {onDelete: 'restrict'});
 		User.hasMany(models.Action, {onDelete: 'restrict'});
+		User.hasOne(models.DbWallet, {onDelete: 'restrict'});
 		db = models;
 	};
 	
-/*
-Class methods
-*/
-	User.aff_channel_id = async function(channel_url) {
-		var user = await User.findOne({
-			where: {
-				aff_channel_url : channel_url
-			}
-		});
-
-		if (user) {
-			return user.aff_channel_id
-		}
-
-		return undefined;
-
-	}
 
 	User.get_user = async function (telegram_id) {
 		var user = await User.findOne({where: {telegram_id}});
 
 		return user;
+	};
+
+	User.get_user_by_name = async function (username) {
+		var user = await User.findOne({
+			where: {
+				username : username}
+			});
+
+		return user;
+	};
+
+
+	User.get_username = async function (telegram_id) {
+		var user = await User.findOne({where: {telegram_id}});
+
+		if (!user){
+			return ''
+		}
+
+		return user.username
 	};
 
 	User.complete_creation = async function (from, chat_id) {
@@ -93,20 +96,19 @@ Class methods
 	}
 
 
-/*
-Instance method
-*/
-
 	User.prototype.get_wallet = async function () {
 
-		var wallet = await this.getTonWallet()
+		var wallet = await this.getDbWallet()
 		
 		if (!wallet){
-			wallet = await db.TonWallet.build()
-			
-			wallet.UserId = this.id
-			
-			await wallet.save()
+			wallet = await db.DbWallet.create({
+				balance : 0,
+				UserId : this.id
+			})
+
+			if (!wallet){
+				throw "Can't create wallet"
+			}
 		}
 
 		return wallet;

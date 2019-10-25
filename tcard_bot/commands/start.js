@@ -3,7 +3,7 @@
 const sendStart = require('../helpers/sendStart')
 const db = require('../models');
 
-function setupStart(bot) {
+async function init(bot) {
     // Start command
     bot.start(async ctx => {
         const telegram_id = ctx.from.id;
@@ -25,7 +25,6 @@ async function suggestWalletCreation(ctx){
 
   // Exports
 module.exports = {
-    setupStart,
-    sendStart,
+    init
 }
   

@@ -2,8 +2,8 @@
 
 const db = require('../models');
 
-var { bot, startBot, secretPath } = require('../init/bot')
-var { ton_client, connectTon } = require('../init/ton')
+var { bot, startBot, secretPath } = require('../providers/bot')
+var { ton_client, connectTon } = require('../providers/ton')
 
 
 const setupAttachChat = require('../middlewares/attachChat')
@@ -13,9 +13,9 @@ const { setupMenu } = require('../commands/menu')
 const { setupWallet } = require('../commands/wallet')
 
 const {setupI18N} = require('../middlewares/i18n')
-const { setupNotificationManager } = require('../helpers/NotificationManager')
+const { setupNotificationManager } = require('../notifications/TonWalletNotificationManager')
 
-var {setupAffSyncManager} = require('../affnetworkmanager/AffSyncManager')
+var {setupRemoteServiceManager} = require('../api/RemoteServiceManager')
 
 
 //db.sequelize.sync({force: true})
@@ -46,7 +46,7 @@ async function main(){
     nm.listen_incoming_messages()
 
 
-    var aff_sync_manager = await setupAffSyncManager(ton_client, db, bot)
+    var aff_sync_manager = await setupRemoteServiceManager(ton_client, db, bot)
     await aff_sync_manager.init()
     await aff_sync_manager.init_managers()
 

@@ -2,26 +2,29 @@
 
 const msg_polling_interval = process.env.MSG_POLLING_INTERVAL;
 
-const {SyncDataStatus, SyncStatus, SyncType} = require("../helpers/constants");
+const {QueueStatus, QueueType} = require("../helpers/constants");
+
+const db = require('../models')
 
 
-class MessageManager {
-    constructor(db, bot){
+class ChannelMessageManager {
+    constructor(){
         this.db = db;
-        this.bot = bot;
 
         this._action_polling_inprogress = false;
         this._msg_polling_inprogress = false;
+        console.log("... ChannelMessageManager created, waiting for init")
     }
 
     async init(){
         setInterval(async ()=> {
-            this._polling_acitons()
+            this._polling_actions()
             this._polling_messages()
         }, msg_polling_interval) // we will start polling once an hour to fix if someone broken
+        console.log("STEP %d - SUCCESS: ChannelMessageManager.init success", SETUP_STEPS['ChannelMessageManager'])
     }
 
-    async _polling_acitons() {
+    async _polling_actions() {
         if (this._action_polling_inprogress){
             return;
         }else{
@@ -29,10 +32,10 @@ class MessageManager {
         }
 
         try {
-            var new_sync = await this.db.Sync.findAll({
+            var new_sync = await this.db.RemoteServiceManagerQueue.findAll({
                 where :{
-                    status : SyncStatus.new,
-                    type : SyncType.messages
+                    status : QueueStatus.new,
+                    type : QueueType.messages
                 },
                 limit : 50
             })
@@ -46,18 +49,18 @@ class MessageManager {
 
                 await message.array.forEach(async (msg) => {
                     try {
-                        await this.db.SyncMessage.create({
+                        await this.db.ChannelMessageManagerQueue.create({
                             aggregated_message_id : msg.id,
                             action_id : action.id,
-                            status : SyncDataStatus.new,
+                            status : QueueStatus.new,
                             data : msg
                         })  
                     }catch(error){
-                        console.log("Can't create SyncMessage:", error)
+                        console.log("Can't create ChannelMessageManagerQueue:", error)
                     }
                 });
                 
-                action.handled()
+                action.done()
             });
         }catch(error){
             this._action_polling_inprogress = false;
@@ -76,7 +79,7 @@ class MessageManager {
         }
 
         try {
-            var new_msgs = await this.db.SyncMessage.need_to_be_done()
+            var new_msgs = await this.db.ChannelMessageManagerQueue.need_to_be_done()
 
             if (!new_msgs){
                 throw "There is no new messages";
@@ -87,7 +90,7 @@ class MessageManager {
                 try {
                     this._handle_message(msg, data)
                 }catch(error){
-                    console.log("Can't handle SyncTransaction:", error)
+                    console.log("Can't handle BalanceManagerQueue:", error)
                 }
             });
         }catch(error){
@@ -100,39 +103,54 @@ class MessageManager {
     }
 
     async _handle_message(msg, data){
-        var message_text = data['message_text'];
-        var channel_url = data['tgUrl'];
-
-        if (!message_text || !channel_url){
+        if (!msg || !data){
+            console.log("_handle_message: WRONG parameters: msg, data:", msg, data)
             return;
         }
 
-        //var aff_channel_id = await this.db.User.aff_channel_id(channel_url)
-
-        var aff_channel_name = 'tcardtestchannel'
-
-        if (!aff_channel_id){
-            console.log("Can't find channel_id for affeliate")
-            return;
+        try {
+            var res = await this.db.BotNotificationManagerQueue.add_aff_channel_post(data)
+            if (res < 0){
+                throw "can't add_aff_channel_post"
+            }
+        }catch(err){
+            console.log("Can't handle message", err)
+        }finally{
+            msg.done()
         }
+    }
 
-        await this.bot.telegram.sendMessage(aff_channel_name, message_text)
+    async ready_to_sync_array(){
+        var res =  await this.db.ChannelMessageManagerQueue.findAll({
+			attributes: ['aggregated_message_id'], 
+			raw: true,
+			where : {
+				status : QueueStatus.done
+			},
+			limit : 50
+		})
 
-        msg.done()
+		var arr = []
+        res.forEach(element => {
+            arr.add(element.aggregated_message_id)
+        });
+
+		return arr;
+
     }
 
 }
 
-const message_manager = undefined;
+let message_manager = undefined;
 
-async function setupMessageManager(db, bot){
+async function setupChannelMessageManager(){
     if (message_manager){
         return message_manager;
     }
 
-    return new MessageManager(db, bot);
+    return new ChannelMessageManager();
 }
 
 module.exports = {
-    setupMessageManager
+    setupChannelMessageManager
 }

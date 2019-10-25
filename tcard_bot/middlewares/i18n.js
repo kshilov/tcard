@@ -13,8 +13,8 @@ const i18n = new I18N({
   fallbackToDefaultLanguage: true,
 })
 
-function setupI18N(bot) {
+async function init(bot) {
   bot.use(i18n.middleware())
 }
 
-module.exports = { setupI18N, i18n}
+module.exports = { init, i18n}

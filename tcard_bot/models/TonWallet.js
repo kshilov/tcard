@@ -1,5 +1,6 @@
 'use strict';
 
+/*
 var db = null;
 const { std_wallet_deploy_full, 
 		ton_show_balance,
@@ -130,3 +131,4 @@ module.exports = function(sequelize, DataTypes) {
 
 	return TonWallet;
 };
+*/

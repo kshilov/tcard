@@ -1,10 +1,10 @@
 'use strict';
 
 var db = null;
-const {SyncStatus, SyncType} = require("../helpers/constants")
+const {QueueStatus, QueueType} = require("../helpers/constants")
 
 module.exports = function(sequelize, DataTypes) {
-	var Sync = sequelize.define('Sync', {
+	var RemoteServiceManagerQueue = sequelize.define('RemoteServiceManagerQueue', {
 		id: {
 			type: DataTypes.INTEGER,
 			allowNull: false,
@@ -28,14 +28,14 @@ module.exports = function(sequelize, DataTypes) {
 		schema: 'public'
     });
     
-    Sync.prototype.get_message = async function() {
+    RemoteServiceManagerQueue.prototype.get_message = async function() {
         return JSON.parse(this.message);
 	}
 	
-	Sync.prototype.handled = async function() {
-		this.status = SyncStatus.handled
+	RemoteServiceManagerQueue.prototype.done = async function() {
+		this.status = QueueStatus.done
 		this.save()
     }
 
-	return Sync;
+	return RemoteServiceManagerQueue;
 };

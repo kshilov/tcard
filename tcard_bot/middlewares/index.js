@@ -1,0 +1,39 @@
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const basename = path.basename(__filename);
+
+const {providers} = require('../providers')
+const bot = providers.bot.bot
+
+
+const middlewares = {};
+
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+  })
+  .forEach(file => {
+    const name = file.split('.').slice(0, -1).join('.')
+    const load_name = './' + file.split('.').slice(0, -1).join('.')
+
+    const func = require(load_name)
+    middlewares[name] = func;
+  });
+
+
+async function init(){
+    Object.keys(middlewares).forEach(funcName => {
+        if (middlewares[funcName].init) {
+            middlewares[funcName].init(bot);
+        }
+      });
+}
+
+middlewares.init = init;
+
+module.exports = { 
+    middlewares
+}
