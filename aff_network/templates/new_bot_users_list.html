@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+    <form method="POST" action="{{ url_for('new_bot_users_list') }}">
+    {{ form.hidden_tag() }}
+    <fieldset class="form-group">
+    <h2>New TG_Bot users: </h2>
+    {% for botUser in botUsers %}
+    <li class="list-group-item list-group-item-light">
+            <ul class="list-group">  
+                <h3>ID: {{botUser.id}}</h3>
+                <h3>Username: {{botUser.username}}</h3>
+                <h3>TG ID: {{botUser.tgId}}</h3>
+                <div class="form-group">
+                    {{ form.role.label(class="form-control-label") }}
+                    {% if form.role.errors %}
+                        {{ form.role(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.role.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.role(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+    	        <div class="form-group">
+         	    <input class="btn btn-outline-info" id="submit" name="submit" type="submit" value="{{ botUser.id }}">
+    	        </div>
+            </ul>
+    </li>
+    {% endfor %}
+            </fieldset>
+        </form>
+    </div>
+{% endblock content %}
