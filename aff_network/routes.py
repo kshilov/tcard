@@ -274,8 +274,6 @@ def offerList():
     form = CreateOfferListForm()
     if form.validate_on_submit():
         offer_id = request.form.get('submit')
-        #app.logger.info('---------------------------')
-        #app.logger.info(offer_id)
         try:
             task = Task(taskType=form.taskType.data, previevText=form.previevText.data, affilId=current_user.id, offerId=offer_id)
 
@@ -284,7 +282,6 @@ def offerList():
             flash('Offer accepted', 'success')
             return redirect(url_for('offerList'))
         except Exception:
-            #flash('Offer already choosen', 'danger')
             db.session.rollback()
             flash('Offer error', 'danger')
 
@@ -297,7 +294,6 @@ def offerList():
 def category():
     form = AddCategoryForm()
     allCategories = Category.query.all()
-    #allCategories = Category.query.filter_by()
     if form.validate_on_submit():
         category = Category(title=form.title.data)
         #if category:
@@ -315,6 +311,7 @@ def category():
 def taskCheck():
     tasks = Task.query.filter_by(status=TASK_STATUS['NEW']).all()
     form = TaskCheckForm()
+
     task_id = 'none_task'
     if form.validate_on_submit():
         task_id = request.form.get('submit')
@@ -331,6 +328,27 @@ def taskCheck():
         return redirect(url_for('taskCheck'))
 
     return render_template('taskCheck.html', title='TaskCheck', form=form, tasks=tasks)
+
+
+@app.route("/channel/check", methods=['GET', 'POST'])
+@login_required
+@moderator_access_level()
+def channelCheck():
+    channels = Channel.query.all()
+    form = EditChannelForm()
+    #form.tgUrl.data = channels[0].tgUrl
+
+    channel_id = 'none_channel'
+    if form.validate_on_submit():
+        channel_id = request.form.get('submit')
+        channel = Channel.query.filter_by(id=channel_id).first()
+        #form.tgUrl.data = channel.tgUrl
+        channel.change_url(form.tgUrl.data)
+
+        flash('Channel changed', 'success')
+        return redirect(url_for('channelCheck'))
+
+    return render_template('channelCheck.html', title='ChannelCheck', form=form, channels=channels)
 
 
 @app.route("/currentUserTasks", methods=['GET', 'POST'])

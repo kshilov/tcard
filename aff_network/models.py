@@ -132,6 +132,19 @@ class Channel(db.Model):
     def __repr__(self):
         return '<Channel {}>'.format(self.tgUrl)
 
+    def change_url(self, url):
+        self.tgUrl = url
+
+        self.__commit()
+
+    def __commit(self):
+        exist = Channel.query.filter_by(id=self.id).first()
+
+        if not exist:
+            db.session.add(self)
+        
+        db.session.commit()
+
 
 class Offer(db.Model):
     id = db.Column(db.Integer, primary_key=True)

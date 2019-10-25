@@ -90,3 +90,8 @@ class AddUserForm(FlaskForm):
     role = SelectField('Role',
                         choices=[('ADVERTISER','ADVERTISER'), ('AFFILIATE','AFFILIATE'), ('MODERATOR','MODERATOR'), ('ADMIN','ADMIN')])
     submit = SubmitField('Add user')
+
+
+class EditChannelForm(FlaskForm):
+    tgUrl = StringField('Telegram URL')
+    submit = SubmitField('change channel')
