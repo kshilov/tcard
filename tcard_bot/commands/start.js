@@ -2,6 +2,7 @@
 
 const sendStart = require('../helpers/sendStart')
 const db = require('../models');
+const logger = require('../helpers/logger')
 
 async function init(bot) {
     // Start command

@@ -57,11 +57,11 @@ module.exports = function(sequelize, DataTypes) {
             
             await this.save();
         }catch(err){
-            logger.error("SEND_TO_ERROR can't send_to: ", err)
+            logger.error("SEND_TO_ERROR can't send_to: %s", err)
             return WALLET_ERROR_CODES.unknown_error;
-        }finally{
-            return WALLET_ERROR_CODES.no_error;
         }
+        
+        return WALLET_ERROR_CODES.no_error;
     }
 
     DbWallet.prototype.deposit = async function (amount) {
@@ -73,11 +73,11 @@ module.exports = function(sequelize, DataTypes) {
             this.balance = this.balance + amount;
             await this.save()
         }catch(err){
-            logger.error("Can't deposit", err)
+            logger.error("Can't deposit %s", err)
             return WALLET_ERROR_CODES.not_enough_balance;
-        }finally{
-            return WALLET_ERROR_CODES.no_error;
         }
+        
+        return WALLET_ERROR_CODES.no_error;
 
     }
 
@@ -90,11 +90,11 @@ module.exports = function(sequelize, DataTypes) {
             this.balance = this.balance - amount;
             await this.save()
         }catch(err){
-            logger.error("Can't withdraw", err)
+            logger.error("Can't withdraw %s", err)
             return WALLET_ERROR_CODES.not_enough_balance;
-        }finally{
-            return WALLET_ERROR_CODES.no_error;
         }
+        
+        return WALLET_ERROR_CODES.no_error;
 
     }
 

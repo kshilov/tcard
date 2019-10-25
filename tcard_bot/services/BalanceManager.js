@@ -2,7 +2,7 @@
 
 const tx_polling_interval = process.env.TX_POLLING_INTERVAL;
 
-const {QueueStatus, QueueType} = require("../helpers/constants");
+const {QueueStatus, QueueType, SETUP_STEPS} = require("../helpers/constants");
 
 const {deposit_grams} = require("../helpers/tonMethods");
 
@@ -63,7 +63,7 @@ class BalanceManager {
                             data : transaction
                         })  
                     }catch(error){
-                        logger.error("Can't create BalanceManagerQueue:", error)
+                        logger.error("Can't create BalanceManagerQueue: %s", error)
                     }
                 });
                 
@@ -106,7 +106,7 @@ class BalanceManager {
                     await this._decrease_balance(sync_tx, adv_user, data.adv_amount)
 
                 }catch(error){
-                    logger.error("Can't handle BalanceManagerQueue:", error)
+                    logger.error("Can't handle BalanceManagerQueue: %s", error)
                 }
 
                 sync_tx.try_to_finish()
@@ -141,7 +141,7 @@ class BalanceManager {
             }
             await tx.add_paid(to_username)
         }catch(error){
-            logger.error("Can't deposit grams:", error)
+            logger.error("Can't deposit grams: %s", error)
         }
     }
 
@@ -167,7 +167,7 @@ class BalanceManager {
             }
             await tx.add_paid(withdraw_from_username)
         }catch(error){
-            logger.error("Can't deposit grams:", error)
+            logger.error("Can't deposit grams: %s", error)
         }
     }
     
@@ -198,7 +198,9 @@ async function setupBalanceManager(){
         return balance_manager;
     }
 
-    return new BalanceManager();
+    balance_manager = new BalanceManager();
+
+    return balance_manager;
 }
 
 module.exports = {

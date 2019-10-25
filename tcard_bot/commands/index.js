@@ -8,6 +8,7 @@ const {providers} = require('../providers')
 
 const bot = providers.bot.bot
  
+const logger = require('../helpers/logger')
 
 const commands = {};
 

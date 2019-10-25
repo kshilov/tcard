@@ -49,7 +49,7 @@ class DbWalletNotificationManager{
             });
         
         }catch(err){
-            logger.error("_polling_transactions error:", err)
+            logger.error("DbWalletNotificationManager._polling_transactions error: %s", err)
         }
 
         this._polling = false;
@@ -78,7 +78,7 @@ class DbWalletNotificationManager{
                 await this._handle_lottery_prize(transaction)
             }
         }catch(err){
-            logger.error("_handle_transaction error:", err)
+            logger.error("DbWalletNotificationManager._handle_transaction error: %s", err)
         }
 
         this._handling = false;

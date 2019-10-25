@@ -46,10 +46,11 @@ class RemoteServiceManager {
             await this.balance_manager.init()
             await this.message_manager.init()
         }catch(error){
-            logger.error("STEP %d - FAILED: RemoteServiceManager.init_managers error", SETUP_STEPS['RemoteServiceManager'], error)
-        }finally{
-            logger.info("STEP %d - SUCCESS: RemoteServiceManager.init_managers", SETUP_STEPS['RemoteServiceManager'])
+            logger.error("STEP %d - FAILED: RemoteServiceManager.init_managers error %s", SETUP_STEPS['RemoteServiceManager'], error)
+            return;
         }
+        
+        logger.info("STEP %d - SUCCESS: RemoteServiceManager.init_managers", SETUP_STEPS['RemoteServiceManager'])
     }
 
     async _handle_transactions(transactions){

@@ -5,4 +5,23 @@ const q = {
     b : 2
 }
 
-console.log("Here is the number: %s", q['a'], 'sdfsdf')
+
+async function try_catch(err){
+    try{
+        if (err){
+            throw "Ooops error"
+        }
+    }catch(err){
+        console.log("Error: ", err)
+        return;
+    }
+    
+    console.log("Finally: ")
+    
+    
+    console.log("End...");
+}
+
+(async () => {
+    await try_catch(1)
+})()

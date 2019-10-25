@@ -2,6 +2,7 @@
 
 const db = require('../models');
 const sendWallet = require('../helpers/sendWallet')
+const logger = require('../helpers/logger')
 
 
 function init(bot) {

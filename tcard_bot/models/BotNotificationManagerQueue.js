@@ -67,11 +67,11 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			logger.error("cant' received_prize", err)
+			logger.error("cant' received_prize %s", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
-		}finally{
-			return notification;
 		}
+		
+		return notification;
 	}
 
 
@@ -90,11 +90,11 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			logger.error("cant' add_aff_channel_post", err)
+			logger.error("cant' add_aff_channel_post %s", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
-		}finally{
-			return notification;
 		}
+		
+		return notification;
 	}
 
 	BotNotificationManagerQueue.received_money = async function(tgId, data){
@@ -113,11 +113,12 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			logger.error("cant' received_money", err)
+			logger.error("cant' received_money %s", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
-		}finally{
-			return notification;
 		}
+		
+		return notification;
+	
 	}
 
 	BotNotificationManagerQueue.deposit = async function(tgId, data){
@@ -136,11 +137,11 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			logger.error("cant' deposit", err)
+			logger.error("cant' deposit %s", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
-		}finally{
-			return notification;
 		}
+
+		return notification;
 	}
 
 	BotNotificationManagerQueue.withdraw = async function(tgId, data){
@@ -159,11 +160,11 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			logger.error("cant' withdraw", err)
+			logger.error("cant' withdraw %s", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
-		}finally{
-			return notification;
 		}
+		
+		return notification;
 	}
 
 
@@ -179,11 +180,23 @@ module.exports = function(sequelize, DataTypes) {
 				username : username
 			})
 		}catch(err){
-			logger.error("cant' _create_raw_notification", err)
+			logger.error("cant' _create_raw_notification %s", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
-		}finally{
-			return notification;
 		}
+		
+		return notification;
+	}
+
+	BotNotificationManagerQueue.need_to_be_done = async function(){
+		var res = await BotNotificationManagerQueue.findAll({
+			where : {
+				status : NotificationStatus.new
+			},
+			limit : 50
+		})
+
+		return res;
+
 	}
 
 	BotNotificationManagerQueue.prototype.get_data = async function(){

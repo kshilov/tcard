@@ -27,7 +27,7 @@ bot.telegram
 
   // Bot catch
 bot.catch(err => {
-  logger.info("STEP %d - FAILED: can't initize telegram bot",SETUP_STEPS['bot'], err);
+  logger.error("FAILED: bot catch error: %s", err);
 })
 
 // Start bot
@@ -46,18 +46,18 @@ function start() {
             100
           )
           const webhookInfo = await bot.telegram.getWebhookInfo()
-          logger.info("STEP %d - SUCCESS: telegram bot is up and running in webhook mode: ",SETUP_STEPS['bot'], webhookInfo);
+          logger.info("STEP %d - SUCCESS: telegram bot is up and running in webhook mode: %s",SETUP_STEPS['bot'], webhookInfo);
         })
-        .catch(err => logger.error("STEP %d - FAILED: telegram bot can't setup webhook",SETUP_STEPS['bot'], err));
+        .catch(err => logger.error("STEP %d - FAILED: telegram bot can't setup webhook %s",SETUP_STEPS['bot'], err));
     } else {
       bot.telegram
         .deleteWebhook()
         .then(async () => {
           bot.startPolling()
           // Console that everything is fine
-          logger.info("STEP %d - SUCCESS: telegram bot is up and running in polling mode: ",SETUP_STEPS['bot']);
+          logger.info("STEP %d - SUCCESS: telegram bot is up and running in polling mode:",SETUP_STEPS['bot']);
         })
-        .catch(err => logger.error("STEP %d - FAILED: telegram bot can't start polling",SETUP_STEPS['bot'], err));
+        .catch(err => logger.error("STEP %d - FAILED: telegram bot can't start polling %s",SETUP_STEPS['bot'], err));
     }
 }
 

@@ -8,6 +8,10 @@ const { providers,
         db
 } = require('./init')
 
+const {setupi18n} = require('./middlewares/i18n')
+
+const bot = providers.bot.bot
+
 //const db = require('./models')
 
 //db.sequelize.sync({force: true})
@@ -16,10 +20,16 @@ db.sequelize.sync()
     logger.info('Connection has been established successfully.');
 })
 .catch(err => {
-    logger.info('Unable to connect to the database:', err);
+    logger.info('Unable to connect to the database: %s', err);
 });
 
+async function main(){
 
-providers.bot.start()
-notifications.start()
-services.start()
+    await setupi18n(bot);
+
+    providers.bot.start()
+    notifications.start()
+    services.start()
+}
+
+main()

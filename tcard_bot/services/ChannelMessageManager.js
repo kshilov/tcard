@@ -2,7 +2,7 @@
 
 const msg_polling_interval = process.env.MSG_POLLING_INTERVAL;
 
-const {QueueStatus, QueueType} = require("../helpers/constants");
+const {QueueStatus, QueueType, SETUP_STEPS} = require("../helpers/constants");
 
 const db = require('../models')
 const logger = require('../helpers/logger')
@@ -57,7 +57,7 @@ class ChannelMessageManager {
                             data : msg
                         })  
                     }catch(error){
-                        logger.error("Can't create ChannelMessageManagerQueue:", error)
+                        logger.error("Can't create ChannelMessageManagerQueue: %s", error)
                     }
                 });
                 
@@ -91,7 +91,7 @@ class ChannelMessageManager {
                 try {
                     this._handle_message(msg, data)
                 }catch(error){
-                    logger.error("Can't handle BalanceManagerQueue:", error)
+                    logger.error("Can't handle BalanceManagerQueue: %s", error)
                 }
             });
         }catch(error){
@@ -105,7 +105,7 @@ class ChannelMessageManager {
 
     async _handle_message(msg, data){
         if (!msg || !data){
-            logger.error("_handle_message: WRONG parameters: msg, data:", msg, data)
+            logger.error("_handle_message: WRONG parameters: msg, data: %s, %s", msg, data)
             return;
         }
 
@@ -115,10 +115,11 @@ class ChannelMessageManager {
                 throw "can't add_aff_channel_post"
             }
         }catch(err){
-            logger.error("Can't handle message", err)
-        }finally{
-            msg.done()
+            logger.error("Can't handle message %s", err)
+            return;
         }
+        
+        msg.done()
     }
 
     async ready_to_sync_array(){
@@ -149,7 +150,9 @@ async function setupChannelMessageManager(){
         return message_manager;
     }
 
-    return new ChannelMessageManager();
+    message_manager = new ChannelMessageManager();
+    
+    return message_manager;
 }
 
 module.exports = {

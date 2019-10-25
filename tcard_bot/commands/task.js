@@ -3,6 +3,8 @@
 const db = require('../models');
 const AFF_LINK = 'http://127.0.0.1:5000/action'
 
+const logger = require('../helpers/logger')
+
 async function init(bot) {
     // Start command
     bot.command('task', async ctx => {

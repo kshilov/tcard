@@ -17,8 +17,8 @@ async function start() {
         console.log("STEP %d - FAILED: can't start ton:",SETUP_STEPS['ton'], err);
         return;
     }
-    
-    console.log("STEP %d - SUCCESS: ton connected to URL:",SETUP_STEPS['ton'], TON_URL);
+        console.log("STEP %d - SUCCESS: ton connected to URL:",SETUP_STEPS['ton'], TON_URL);
+
 }
 
 
