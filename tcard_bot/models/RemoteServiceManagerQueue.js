@@ -2,6 +2,7 @@
 
 var db = null;
 const {QueueStatus, QueueType} = require("../helpers/constants")
+const logger = require('../helpers/logger')
 
 module.exports = function(sequelize, DataTypes) {
 	var RemoteServiceManagerQueue = sequelize.define('RemoteServiceManagerQueue', {

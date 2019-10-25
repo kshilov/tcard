@@ -1,4 +1,5 @@
 'use strict';
+const logger = require('../helpers/logger')
 
 var db = null;
 
@@ -51,7 +52,6 @@ module.exports = function(sequelize, DataTypes) {
 All methods start here
 */
 	User.associate = function(models) {
-		User.hasMany(models.Action, {onDelete: 'restrict'});
 		User.hasOne(models.DbWallet, {onDelete: 'restrict'});
 		db = models;
 	};

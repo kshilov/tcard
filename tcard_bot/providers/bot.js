@@ -8,6 +8,7 @@ const secretPath = uuid()
 const bot_listen_port = process.env.BOT_LISTEN_PORT;
 const {SETUP_STEPS} = require("../helpers/constants");
 
+const logger = require('../helpers/logger')
 
 // Create bot
 const bot = new Telegraf(process.env.TOKEN, {
@@ -26,7 +27,7 @@ bot.telegram
 
   // Bot catch
 bot.catch(err => {
-  console.log("STEP %d - FAILED: can't initize telegram bot",SETUP_STEPS['bot'], err);
+  logger.info("STEP %d - FAILED: can't initize telegram bot",SETUP_STEPS['bot'], err);
 })
 
 // Start bot
@@ -45,18 +46,18 @@ function start() {
             100
           )
           const webhookInfo = await bot.telegram.getWebhookInfo()
-          console.log("STEP %d - SUCCESS: telegram bot is up and running in webhook mode: ",SETUP_STEPS['bot'], webhookInfo);
+          logger.info("STEP %d - SUCCESS: telegram bot is up and running in webhook mode: ",SETUP_STEPS['bot'], webhookInfo);
         })
-        .catch(err => console.log("STEP %d - FAILED: telegram bot can't setup webhook",SETUP_STEPS['bot'], err));
+        .catch(err => logger.error("STEP %d - FAILED: telegram bot can't setup webhook",SETUP_STEPS['bot'], err));
     } else {
       bot.telegram
         .deleteWebhook()
         .then(async () => {
           bot.startPolling()
           // Console that everything is fine
-          console.log("STEP %d - SUCCESS: telegram bot is up and running in polling mode: ",SETUP_STEPS['bot']);
+          logger.info("STEP %d - SUCCESS: telegram bot is up and running in polling mode: ",SETUP_STEPS['bot']);
         })
-        .catch(err => console.log("STEP %d - FAILED: telegram bot can't start polling",SETUP_STEPS['bot'], err));
+        .catch(err => logger.error("STEP %d - FAILED: telegram bot can't start polling",SETUP_STEPS['bot'], err));
     }
 }
 

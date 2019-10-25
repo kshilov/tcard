@@ -2,6 +2,8 @@
 
 const {NotificationStatus, NotificationType, BOT_NOTIFICATION_ERROR} = require("../helpers/constants");
 
+const logger = require('../helpers/logger')
+
 let db;
 
 module.exports = function(sequelize, DataTypes) {
@@ -65,7 +67,7 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			console.log("cant' received_prize", err)
+			logger.error("cant' received_prize", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
 		}finally{
 			return notification;
@@ -88,7 +90,7 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			console.log("cant' add_aff_channel_post", err)
+			logger.error("cant' add_aff_channel_post", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
 		}finally{
 			return notification;
@@ -111,7 +113,7 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			console.log("cant' received_money", err)
+			logger.error("cant' received_money", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
 		}finally{
 			return notification;
@@ -134,7 +136,7 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			console.log("cant' deposit", err)
+			logger.error("cant' deposit", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
 		}finally{
 			return notification;
@@ -157,7 +159,7 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			console.log("cant' withdraw", err)
+			logger.error("cant' withdraw", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
 		}finally{
 			return notification;
@@ -177,7 +179,7 @@ module.exports = function(sequelize, DataTypes) {
 				username : username
 			})
 		}catch(err){
-			console.log("cant' _create_raw_notification", err)
+			logger.error("cant' _create_raw_notification", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
 		}finally{
 			return notification;

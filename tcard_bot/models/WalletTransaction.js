@@ -2,6 +2,7 @@
 
 let db = null;
 const {TXWalletType, TXWalletStatus, WALLET_ERROR_CODES} = require("../helpers/constants");
+const logger = require('../helpers/logger')
 
 module.exports = function(sequelize, DataTypes) {
 	var WalletTransaction = sequelize.define('WalletTransaction', {

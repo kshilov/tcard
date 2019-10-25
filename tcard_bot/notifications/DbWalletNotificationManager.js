@@ -6,6 +6,7 @@ const polling_interval = process.env.TX_WALLET_POLLING_INTERVAL;
 
 const {TXWalletType, TXWalletStatus} = require("../helpers/constants");
 
+const logger = require('../helpers/logger')
 
 class DbWalletNotificationManager{
        
@@ -48,7 +49,7 @@ class DbWalletNotificationManager{
             });
         
         }catch(err){
-            console.log("_polling_transactions error:", err)
+            logger.error("_polling_transactions error:", err)
         }
 
         this._polling = false;
@@ -77,7 +78,7 @@ class DbWalletNotificationManager{
                 await this._handle_lottery_prize(transaction)
             }
         }catch(err){
-            console.log("_handle_transaction error:", err)
+            logger.error("_handle_transaction error:", err)
         }
 
         this._handling = false;

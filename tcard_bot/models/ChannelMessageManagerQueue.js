@@ -2,6 +2,7 @@
 
 const {QueueStatus, QueueType, NotificationType} = require("../helpers/constants");
 
+const logger = require('../helpers/logger')
 
 module.exports = function(sequelize, DataTypes) {
 	var ChannelMessageManagerQueue = sequelize.define('ChannelMessageManagerQueue', {

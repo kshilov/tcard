@@ -1,24 +1,25 @@
 'use strict';
 
+const logger = require('./helpers/logger')
+
 const { providers,
         notifications,
-        api,
+        services,
         db
 } = require('./init')
+
+//const db = require('./models')
 
 //db.sequelize.sync({force: true})
 db.sequelize.sync()
 .then(() => {
-    console.log('Connection has been established successfully.');
+    logger.info('Connection has been established successfully.');
 })
 .catch(err => {
-    console.error('Unable to connect to the database:', err);
+    logger.info('Unable to connect to the database:', err);
 });
 
-console.log(notifications)
 
-providers.ton.start()
 providers.bot.start()
 notifications.start()
-api.start()
-
+services.start()

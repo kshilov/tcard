@@ -9,6 +9,7 @@ const {deposit_grams} = require("../helpers/tonMethods");
 const TO_ADDRESS = 'ce709b5bfca589eb621b5a5786d0b562761144ac48f59e0b0d35ad0973bcdb86';
 
 const db = require('../models')
+const logger = require('../helpers/logger')
 
 
 class BalanceManager {
@@ -19,7 +20,7 @@ class BalanceManager {
 
         this._action_polling_inprogress = false;
         this._tx_polling_inprogress = false;
-        console.log("... BalanceManager created, waiting for init")
+        logger.info("... BalanceManager created, waiting for init")
     }
 
     async init(){
@@ -27,7 +28,7 @@ class BalanceManager {
             this._polling_actions()
             this._polling_transactions()
         }, tx_polling_interval) // we will start polling once an hour to fix if someone broken
-        console.log("STEP %d - SUCCESS: balancemanager.init success", SETUP_STEPS['balancemanager'])
+        logger.info("STEP %d - SUCCESS: balancemanager.init success", SETUP_STEPS['balancemanager'])
     }
 
     async _polling_actions() {
@@ -62,7 +63,7 @@ class BalanceManager {
                             data : transaction
                         })  
                     }catch(error){
-                        console.log("Can't create BalanceManagerQueue:", error)
+                        logger.error("Can't create BalanceManagerQueue:", error)
                     }
                 });
                 
@@ -105,7 +106,7 @@ class BalanceManager {
                     await this._decrease_balance(sync_tx, adv_user, data.adv_amount)
 
                 }catch(error){
-                    console.log("Can't handle BalanceManagerQueue:", error)
+                    logger.error("Can't handle BalanceManagerQueue:", error)
                 }
 
                 sync_tx.try_to_finish()
@@ -140,7 +141,7 @@ class BalanceManager {
             }
             await tx.add_paid(to_username)
         }catch(error){
-            console.log("Can't deposit grams:", error)
+            logger.error("Can't deposit grams:", error)
         }
     }
 
@@ -166,7 +167,7 @@ class BalanceManager {
             }
             await tx.add_paid(withdraw_from_username)
         }catch(error){
-            console.log("Can't deposit grams:", error)
+            logger.error("Can't deposit grams:", error)
         }
     }
     

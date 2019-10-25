@@ -12,6 +12,8 @@ const {setupChannelMessageManager} = require('./ChannelMessageManager')
 
 const db = require('../models')
 
+const logger = require('../helpers/logger')
+
 
 const GET_TRANSACTIONS = 'http://127.0.0.1:5000/balance/get/transactions'
 const UPDATE_TRANSACTIONS_PAID = 'http://127.0.0.1:5000/balance/update/transactions/paid'
@@ -22,7 +24,7 @@ const UPDATE_MESSAGES_PUBLISHED = 'http://127.0.0.1:5000/messages/update/publish
 class RemoteServiceManager {
     constructor(){
         this.db = db;
-        console.log("... RemoteServiceManager created, waiting for init")
+        logger.info("... RemoteServiceManager created, waiting for init")
     }
 
     async init(){
@@ -32,8 +34,8 @@ class RemoteServiceManager {
             this.listen_updates();
         }, polling_interval)
 
-        console.log("Step %d - SUCCESS: RemoteServiceManager initialized", SETUP_STEPS['RemoteServiceManager']);
-        console.log("... waiting for init_managers");
+        logger.info("Step %d - SUCCESS: RemoteServiceManager initialized", SETUP_STEPS['RemoteServiceManager']);
+        logger.info("... waiting for init_managers");
     }
 
     async init_managers(){
@@ -44,9 +46,9 @@ class RemoteServiceManager {
             await this.balance_manager.init()
             await this.message_manager.init()
         }catch(error){
-            console.log("STEP %d - FAILED: RemoteServiceManager.init_managers error", SETUP_STEPS['RemoteServiceManager'], error)
+            logger.error("STEP %d - FAILED: RemoteServiceManager.init_managers error", SETUP_STEPS['RemoteServiceManager'], error)
         }finally{
-            console.log("STEP %d - SUCCESS: RemoteServiceManager.init_managers", SETUP_STEPS['RemoteServiceManager'])
+            logger.info("STEP %d - SUCCESS: RemoteServiceManager.init_managers", SETUP_STEPS['RemoteServiceManager'])
         }
     }
 
@@ -101,7 +103,7 @@ class RemoteServiceManager {
             this.db.BalanceManagerQueue.sync_list(aggregated_transaction_ids)
         })
         .catch(error => {
-          console.log(error);
+            logger.error(error);
         });
     }
 
@@ -116,7 +118,7 @@ class RemoteServiceManager {
             this.db.ChannelMessageManagerQueue.sync_list(aggregated_messages_ids)
         })
         .catch(error => {
-          console.log(error);
+            logger.error(error);
         });
 
     }
@@ -127,7 +129,7 @@ class RemoteServiceManager {
             this._handle_transactions(response.data)
         })
         .catch(error => {
-          console.log(error);
+            logger.error(error);
         });
     }
 
@@ -137,7 +139,7 @@ class RemoteServiceManager {
             this._handle_messages(response.data)
         })
         .catch(error => {
-          console.log(error);
+            logger.error(error);
         });
 
     }

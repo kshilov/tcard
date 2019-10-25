@@ -3,9 +3,6 @@
 const db = require('../models');
 const sendWallet = require('../helpers/sendWallet')
 
-const {providers} = require("../providers")
-
-const ton = providers.ton.ton
 
 function init(bot) {
 

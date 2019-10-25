@@ -11,6 +11,7 @@ const {middlewares} = require('../middlewares')
 
 const bot = providers.bot.bot
 const i18n = middlewares.i18n.i18n
+const logger = require('../helpers/logger')
 
 
 class BotNotificationManager{
@@ -48,7 +49,7 @@ class BotNotificationManager{
             });
         
         }catch(err){
-            console.log("_polling_notifications error:", err)
+            logger.error("_polling_notifications error:", err)
         }
 
         this._polling = false;
@@ -86,7 +87,7 @@ class BotNotificationManager{
             }
 
         }catch(err){
-            console.log("_handle_notification error:", err)
+            logger.error("_handle_notification error:", err)
         }
 
         this._handling = false;
@@ -95,7 +96,7 @@ class BotNotificationManager{
     async _handle_recieved(notification){
         var tgId = notification.tgId;
         if (!tgId){
-            console.log("_handle_recieved ERROR: There is no tgId");
+            logger.error("_handle_recieved ERROR: There is no tgId");
             return;
         }
 
@@ -109,7 +110,7 @@ class BotNotificationManager{
 
             await this.bot.telegram.sendMessage(chat_id, message)
         }catch(err){
-            console.log("_handle_recieved ERROR: ", err);
+            logger.error("_handle_recieved ERROR: ", err);
         }finally{
             await notification.done()
         }
@@ -118,7 +119,7 @@ class BotNotificationManager{
     async _handle_aff_channel_post(notification){
         var data = await notification.get_data()
         if (!data){
-            console.log("_handle_aff_channel_post ERROR: There is no data");
+            logger.error("_handle_aff_channel_post ERROR: There is no data");
             return;
         }
 
@@ -129,7 +130,7 @@ class BotNotificationManager{
 
             await this.bot.telegram.sendMessage(channel_name, message)
         }catch(err){
-            console.log("_handle_aff_channel_post ERROR: ", err);
+            logger.error("_handle_aff_channel_post ERROR: ", err);
         }finally{
             await notification.done()
         }
@@ -139,7 +140,7 @@ class BotNotificationManager{
     async _handle_prize(notification){
         var tgId = notification.tgId;
         if (!tgId){
-            console.log("_handle_prize ERROR: There is no tgId");
+            logger.error("_handle_prize ERROR: There is no tgId");
             return;
         }
 
@@ -153,7 +154,7 @@ class BotNotificationManager{
 
             await this.bot.telegram.sendMessage(chat_id, message)
         }catch(err){
-            console.log("_handle_prize ERROR: ", err);
+            logger.error("_handle_prize ERROR: ", err);
         }finally{
             await notification.done()
         }
@@ -162,7 +163,7 @@ class BotNotificationManager{
     async _handle_withdraw(notification){
         var tgId = notification.tgId;
         if (!tgId){
-            console.log("_handle_withdraw ERROR: There is no tgId");
+            logger.error("_handle_withdraw ERROR: There is no tgId");
             return;
         }
 
@@ -176,7 +177,7 @@ class BotNotificationManager{
 
             await this.bot.telegram.sendMessage(chat_id, message)
         }catch(err){
-            console.log("_handle_withdraw ERROR: ", err);
+            logger.error("_handle_withdraw ERROR: ", err);
         }finally{
             await notification.done()
         }
@@ -185,7 +186,7 @@ class BotNotificationManager{
     async _handle_deposit(notification){
         var tgId = notification.tgId;
         if (!tgId){
-            console.log("_handle_deposit ERROR: There is no tgId");
+            logger.error("_handle_deposit ERROR: There is no tgId");
             return;
         }
 
@@ -199,7 +200,7 @@ class BotNotificationManager{
 
             await this.bot.telegram.sendMessage(chat_id, message)
         }catch(err){
-            console.log("_handle_deposit ERROR: ", err);
+            logger.error("_handle_deposit ERROR: ", err);
         }finally{
             await notification.done()
         }

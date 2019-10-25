@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const basename = path.basename(__filename);
 
-const api = {};
+const services = {};
 
 fs
   .readdirSync(__dirname)
@@ -16,29 +16,29 @@ fs
     const load_name = './' + file.split('.').slice(0, -1).join('.')
 
     const manager = require(load_name)
-    api[name] = manager;
+    services[name] = manager;
   });
 
 
 async function init(){
-    Object.keys(api).forEach(apiName => {
-        if (api[apiName].init) {
-            api[apiName].init();
+    Object.keys(services).forEach(serviceName => {
+        if (services[serviceName].init) {
+          services[serviceName].init();
         }
       });
 }
 
 async function start(){
-    Object.keys(api).forEach(apiName => {
-        if (api[apiName].start) {
-            api[apiName].start();
+    Object.keys(services).forEach(serviceName => {
+        if (services[serviceName].start) {
+          services[serviceName].start();
         }
       });      
 }
 
-api.init = init;
-api.start = start;
+services.init = init;
+services.start = start;
 
 module.exports = { 
-    api
+    services
 }

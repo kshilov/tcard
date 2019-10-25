@@ -3,6 +3,7 @@
 let db = null;
 
 const {WALLET_ERROR_CODES} = require("../helpers/constants");
+const logger = require('../helpers/logger')
 
 module.exports = function(sequelize, DataTypes) {
 	var DbWallet = sequelize.define('DbWallet', {
@@ -56,7 +57,7 @@ module.exports = function(sequelize, DataTypes) {
             
             await this.save();
         }catch(err){
-            console.log("SEND_TO_ERROR can't send_to: ", err)
+            logger.error("SEND_TO_ERROR can't send_to: ", err)
             return WALLET_ERROR_CODES.unknown_error;
         }finally{
             return WALLET_ERROR_CODES.no_error;
@@ -72,7 +73,7 @@ module.exports = function(sequelize, DataTypes) {
             this.balance = this.balance + amount;
             await this.save()
         }catch(err){
-            console.log("Can't deposit", err)
+            logger.error("Can't deposit", err)
             return WALLET_ERROR_CODES.not_enough_balance;
         }finally{
             return WALLET_ERROR_CODES.no_error;
@@ -89,7 +90,7 @@ module.exports = function(sequelize, DataTypes) {
             this.balance = this.balance - amount;
             await this.save()
         }catch(err){
-            console.log("Can't withdraw", err)
+            logger.error("Can't withdraw", err)
             return WALLET_ERROR_CODES.not_enough_balance;
         }finally{
             return WALLET_ERROR_CODES.no_error;

@@ -5,6 +5,7 @@ const msg_polling_interval = process.env.MSG_POLLING_INTERVAL;
 const {QueueStatus, QueueType} = require("../helpers/constants");
 
 const db = require('../models')
+const logger = require('../helpers/logger')
 
 
 class ChannelMessageManager {
@@ -13,7 +14,7 @@ class ChannelMessageManager {
 
         this._action_polling_inprogress = false;
         this._msg_polling_inprogress = false;
-        console.log("... ChannelMessageManager created, waiting for init")
+        logger.info("... ChannelMessageManager created, waiting for init")
     }
 
     async init(){
@@ -21,7 +22,7 @@ class ChannelMessageManager {
             this._polling_actions()
             this._polling_messages()
         }, msg_polling_interval) // we will start polling once an hour to fix if someone broken
-        console.log("STEP %d - SUCCESS: ChannelMessageManager.init success", SETUP_STEPS['ChannelMessageManager'])
+        logger.info("STEP %d - SUCCESS: ChannelMessageManager.init success", SETUP_STEPS['ChannelMessageManager'])
     }
 
     async _polling_actions() {
@@ -56,7 +57,7 @@ class ChannelMessageManager {
                             data : msg
                         })  
                     }catch(error){
-                        console.log("Can't create ChannelMessageManagerQueue:", error)
+                        logger.error("Can't create ChannelMessageManagerQueue:", error)
                     }
                 });
                 
@@ -90,7 +91,7 @@ class ChannelMessageManager {
                 try {
                     this._handle_message(msg, data)
                 }catch(error){
-                    console.log("Can't handle BalanceManagerQueue:", error)
+                    logger.error("Can't handle BalanceManagerQueue:", error)
                 }
             });
         }catch(error){
@@ -104,7 +105,7 @@ class ChannelMessageManager {
 
     async _handle_message(msg, data){
         if (!msg || !data){
-            console.log("_handle_message: WRONG parameters: msg, data:", msg, data)
+            logger.error("_handle_message: WRONG parameters: msg, data:", msg, data)
             return;
         }
 
@@ -114,7 +115,7 @@ class ChannelMessageManager {
                 throw "can't add_aff_channel_post"
             }
         }catch(err){
-            console.log("Can't handle message", err)
+            logger.error("Can't handle message", err)
         }finally{
             msg.done()
         }

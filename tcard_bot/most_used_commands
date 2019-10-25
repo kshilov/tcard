@@ -1,0 +1,3 @@
+pino app.js | pino-pretty
+node ./app.js | pino-pretty -c -t
+node app.js | pino-tee warn ./warn-logs > ./all-logs
