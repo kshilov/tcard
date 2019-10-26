@@ -101,6 +101,9 @@ def bot_register():
         if not user or botUser.status != BOT_USER_STATUS['ACTIVE']:
             return redirect(DEFAULT_REDIRECT_LINK)
 
+        if user.status == USER_STATUS['ACTIVE']:
+            return redirect(url_for(account))
+
         if form.validate_on_submit():
             user.register_user(password=form.password.data)
 
@@ -476,19 +479,6 @@ def update_tx_paid():
     db.session.commit()
     return ''
 
-@app.route("/balance/update/transactions/handled", methods=['POST'])
-# need to pass list of IDs of tx to update: [1,2,3,..]
-# @login_required
-# @service_access_level
-def update_tx_handled():
-    rq = request.json
-    transactions_id = rq['data']
-    if (len(transactions_id) <= 0):
-        return ''
-
-    Transaction.query.filter(Transaction.id.in_(transactions_id)).update({'transactionStatus': TRANSACTION_STATUS['HANDLED']}, synchronize_session='fetch')
-    db.session.commit()
-    return ''
 
 @app.route("/messages/get", methods=['GET'])
 # @login_required
@@ -552,7 +542,9 @@ def create_tx_deposit():
 # @login_required
 # @service_access_level
 def create_botUser():
-    users = request.json
+    rq = request.json
+    
+    users = rq['data']
     if (len(users) <= 0):
         return ''
 
@@ -569,7 +561,8 @@ def create_botUser():
 # @service_access_level
 def get_roles():
     try:
-        users = request.json
+        rq = request.json
+        users = rq['data']
         if (len(users) <= 0):
             return flask.jsonify([])
 
