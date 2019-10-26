@@ -4,6 +4,8 @@ const {QueueStatus, QueueType, NotificationType} = require("../helpers/constants
 
 const logger = require('../helpers/logger')
 
+let db = null;
+
 module.exports = function(sequelize, DataTypes) {
 	var ChannelMessageManagerQueue = sequelize.define('ChannelMessageManagerQueue', {
 		id: {
@@ -15,6 +17,7 @@ module.exports = function(sequelize, DataTypes) {
 		aggregated_message_id : {
 			type: DataTypes.INTEGER,
 			allowNull: false,
+			unique: true
 		},
 		status : {
 			type: DataTypes.INTEGER,
@@ -29,12 +32,17 @@ module.exports = function(sequelize, DataTypes) {
 		schema: 'public'
 	});
 
+	ChannelMessageManagerQueue.associate = function(models) {
+		db = models;
+	};
+
+
 	ChannelMessageManagerQueue.sync_list = async function(aggregated_message_ids){
 		ChannelMessageManagerQueue.update(
 			{status: QueueStatus.synced},
 			{where : { 
 				aggregated_message_id : {
-						$in : aggregated_message_ids
+					[db.Sequelize.Op.in] : aggregated_message_ids
 					}
 				}
 		})
@@ -47,6 +55,26 @@ module.exports = function(sequelize, DataTypes) {
 			},
 			limit : 50
 		})
+
+		return res;
+	}
+
+	ChannelMessageManagerQueue.add_message = async function(message){
+		if (!message){
+			return;
+		}
+
+		var res = 0;
+		try {
+			await ChannelMessageManagerQueue.create({
+				aggregated_message_id : message.id,
+				status : QueueStatus.new,
+				data : JSON.stringify(message)
+			})  
+		}catch(err){
+			res = -1;
+			logger.error("ChannelMessageManagerQueue.add_message bad message: %s", err)
+		}
 
 		return res;
 	}

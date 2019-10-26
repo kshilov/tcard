@@ -67,7 +67,7 @@ module.exports = function(sequelize, DataTypes) {
 				data
 			)
 		}catch(err){
-			logger.error("cant' received_prize %s", err)
+			logger.error("cant' BotNotificationManagerQueue.received_prize %s", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
 		}
 		
@@ -175,12 +175,12 @@ module.exports = function(sequelize, DataTypes) {
 			notification = await BotNotificationManagerQueue.create({
 				status : status,
 				type : type,
-				data : data,
+				data : JSON.stringify(data),
 				tgId : tgId,
 				username : username
 			})
 		}catch(err){
-			logger.error("cant' _create_raw_notification %s", err)
+			logger.error("cant' BotNotificationManagerQueue._create_raw_notification %s", err)
 			return BOT_NOTIFICATION_ERROR.unknown_error;
 		}
 		

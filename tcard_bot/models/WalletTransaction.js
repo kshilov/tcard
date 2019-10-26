@@ -83,7 +83,7 @@ module.exports = function(sequelize, DataTypes) {
             amount : amount,
             type : TXWalletType.deposit,
             status : TXWalletStatus.new,
-            data : data
+            data : JSON.stringify(data)
         })
 
         return tx;
@@ -103,7 +103,7 @@ module.exports = function(sequelize, DataTypes) {
             amount : amount,
             type : TXWalletType.withdraw,
             status : TXWalletStatus.new,
-            data : data
+            data : JSON.stringify(data)
         })
 
         return tx;
@@ -112,11 +112,9 @@ module.exports = function(sequelize, DataTypes) {
     WalletTransaction.need_to_be_done = async function() {
         var res = await WalletTransaction.findAll({
             where : {
-                status : 
-                    db.Sequelize.and(
-                       {$ne : TXWalletStatus.done},
-                       {$ne : TXWalletStatus.failed}
-                    )
+                status : {
+                    [db.Sequelize.Op.notIn] : [TXWalletStatus.done, TXWalletStatus.failed]
+                }
             },
             limit : 50
         })

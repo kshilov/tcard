@@ -15,6 +15,7 @@ const i18n = new I18N({
   fallbackToDefaultLanguage: true,
 })
 
+i18n.current_locale = 'ru'
 
 
 async function setupi18n(bot) {

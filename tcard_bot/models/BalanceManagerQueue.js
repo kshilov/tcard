@@ -2,11 +2,15 @@
 
 const {QueueStatus} = require("../helpers/constants");
 
+const logger = require('../helpers/logger')
+
 /* 
 We store list of aggregated transactions in Sync. 
 Then each list we split and stor each transaction in BalanceManagerQueue
 The unique key aggregated_transaction_id
 */
+
+let db = null
 module.exports = function(sequelize, DataTypes) {
 	var BalanceManagerQueue = sequelize.define('BalanceManagerQueue', {
 		id: {
@@ -45,6 +49,11 @@ module.exports = function(sequelize, DataTypes) {
 		schema: 'public'
 	});
 	
+	BalanceManagerQueue.associate = function(models) {
+		db = models;
+	};
+
+
 	BalanceManagerQueue.prototype.done = async function () {
 		this.status = QueueStatus.done;
 		this.save()
@@ -72,7 +81,7 @@ module.exports = function(sequelize, DataTypes) {
 		}
 
 		paid_usernames.add(username)
-		this.paid_usernames = paid_usernames;
+		this.paid_usernames = JSON.stringify(paid_usernames);
 		this.count = this.count + 1;
 		this.save()
 	}
@@ -96,7 +105,7 @@ module.exports = function(sequelize, DataTypes) {
 			{status: QueueStatus.synced},
 			{where : { 
 					aggregated_transaction_id : {
-						$in : aggregated_transaction_ids
+						[db.Sequelize.Op.in] : aggregated_transaction_ids
 					}
 				}
 		})
@@ -107,11 +116,32 @@ module.exports = function(sequelize, DataTypes) {
 			where : {
 				status : QueueStatus.new,
 				count : {
-					$lt : 3
+					[db.Sequelize.Op.lt] : 3
 				}
 			},
 			limit : 50
 		})
+
+		return res;
+	}
+
+	BalanceManagerQueue.add_transaction = async function(transaction){
+		if (!transaction){
+			return;
+		}
+
+		var res = 0;
+		try {
+			await BalanceManagerQueue.create({
+				aggregated_transaction_id : transaction.id,
+				status : QueueStatus.new,
+				data : JSON.stringify(transaction),
+				count : 0
+			})  
+		}catch(err){
+			res = -1;
+			logger.error("BalanceManagerQueue.add_transaction bad transaction: %s", err)
+		}
 
 		return res;
 	}

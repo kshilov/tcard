@@ -33,36 +33,32 @@ class ChannelMessageManager {
         }
 
         try {
-            var new_sync = await this.db.RemoteServiceManagerQueue.findAll({
-                where :{
-                    status : QueueStatus.new,
-                    type : QueueType.messages
-                },
-                limit : 50
-            })
+            var new_actions = await this.db.RemoteServiceManagerQueue.new_channel_messages() 
 
-            if (!new_sync){
+            if (!new_actions){
                 throw "There is no new syncs";
             }
 
-            new_sync.array.forEach(async (action) => {
-                var message = action.get_message()
-
-                await message.array.forEach(async (msg) => {
+            await new_actions.forEach(async (action) => {
+                var message_array = await action.get_message()
+                
+                var success = true;
+                await message_array.forEach(async (message) => {
                     try {
-                        await this.db.ChannelMessageManagerQueue.create({
-                            aggregated_message_id : msg.id,
-                            action_id : action.id,
-                            status : QueueStatus.new,
-                            data : msg
-                        })  
+                       var res = await this.db.ChannelMessageManagerQueue.add_message(message)
+                       if (res < 0){
+                           success = false;
+                       }
                     }catch(error){
-                        logger.error("Can't create ChannelMessageManagerQueue: %s", error)
+                        logger.error("ChannelMessageManager._polling_actions: %s", error)
+                        success = false;
                     }
                 });
-                
-                action.done()
+                if (success){
+                    action.done()
+                }
             });
+        
         }catch(error){
             this._action_polling_inprogress = false;
             return;
@@ -86,16 +82,17 @@ class ChannelMessageManager {
                 throw "There is no new messages";
             }
 
-            new_msgs.array.forEach(async (msg) => {
+            await new_msgs.forEach(async (msg) => {
                 var data = await msg.get_data()
                 try {
                     this._handle_message(msg, data)
                 }catch(error){
-                    logger.error("Can't handle BalanceManagerQueue: %s", error)
+                    logger.error("Catch 1 ChannelMessageManager._polling_messages: %s", error)
                 }
             });
         }catch(error){
             this._msg_polling_inprogress = false;
+            logger.error("Catch 2: ChannelMessageManager._polling_messages: %s", error)
             return;
         }
 
@@ -105,7 +102,7 @@ class ChannelMessageManager {
 
     async _handle_message(msg, data){
         if (!msg || !data){
-            logger.error("_handle_message: WRONG parameters: msg, data: %s, %s", msg, data)
+            logger.error("ChannelMessageManager._handle_message: WRONG parameters: msg, data: %s, %s", msg, data)
             return;
         }
 
@@ -115,7 +112,7 @@ class ChannelMessageManager {
                 throw "can't add_aff_channel_post"
             }
         }catch(err){
-            logger.error("Can't handle message %s", err)
+            logger.error("Catch 2 Can't ChannelMessageManager._handle_message %s", err)
             return;
         }
         
@@ -127,14 +124,14 @@ class ChannelMessageManager {
 			attributes: ['aggregated_message_id'], 
 			raw: true,
 			where : {
-				status : QueueStatus.done
+				status : QueueStatus.done 
 			},
 			limit : 50
 		})
 
 		var arr = []
         res.forEach(element => {
-            arr.add(element.aggregated_message_id)
+            arr.push(element.aggregated_message_id)
         });
 
 		return arr;

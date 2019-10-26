@@ -39,36 +39,32 @@ class BalanceManager {
         }
 
         try {
-            var new_sync = await this.db.RemoteServiceManagerQueue.findAll({
-                where :{
-                    status : QueueStatus.new,
-                    type : QueueType.transactions
-                },
-                limit : 50
-            })
-
-            if (!new_sync){
+            var new_actions = await this.db.RemoteServiceManagerQueue.new_transactions()
+            
+            if (!new_actions){
                 throw "There is no new syncs";
             }
 
-            new_sync.array.forEach(async (action) => {
-                var message = action.get_message()
-
-                 message.array.forEach(async (transaction) => {
+            await new_actions.forEach(async (action) => {
+                var message_array = await action.get_message()
+                
+                var success = true;
+                await message_array.forEach(async (transaction) => {
                     try {
-                        await this.db.BalanceManagerQueue.create({
-                            aggregated_transaction_id : transaction.id,
-                            action_id : action.id,
-                            status : QueueStatus.new,
-                            data : transaction
-                        })  
+                        var res = await this.db.BalanceManagerQueue.add_transaction(transaction)  
+                        if (res < 0){
+                            success = false;
+                        } 
                     }catch(error){
-                        logger.error("Can't create BalanceManagerQueue: %s", error)
+                        logger.error("BalanceManager._polling_actions: %s", error)
+                        success = false;
                     }
                 });
-                
-                action.done()
+                if (success){
+                    action.done()
+                }
             });
+
         }catch(error){
             this._action_polling_inprogress = false;
             return;
@@ -92,7 +88,7 @@ class BalanceManager {
                 throw "There is no new transactions";
             }
 
-            new_txs.array.forEach(async (sync_tx) => {
+            await new_txs.forEach(async (sync_tx) => {
                 var data = sync_tx.get_data()
                 try {
                     var aff_user = await this.db.User.get_by_username(data.affId) 
@@ -106,13 +102,14 @@ class BalanceManager {
                     await this._decrease_balance(sync_tx, adv_user, data.adv_amount)
 
                 }catch(error){
-                    logger.error("Can't handle BalanceManagerQueue: %s", error)
+                    logger.error("Can't handle BalanceManagerQueue._polling_transactions: %s", error)
                 }
 
                 sync_tx.try_to_finish()
             });
         }catch(error){
             this._tx_polling_inprogress = false;
+            logger.error("Catch 2 BalanceManagerQueue._polling_transactions: %s", error)
             return;
         }
 
@@ -141,7 +138,7 @@ class BalanceManager {
             }
             await tx.add_paid(to_username)
         }catch(error){
-            logger.error("Can't deposit grams: %s", error)
+            logger.error("Can't BalanceManagerQueue._increase_balance: %s", error)
         }
     }
 
@@ -167,7 +164,7 @@ class BalanceManager {
             }
             await tx.add_paid(withdraw_from_username)
         }catch(error){
-            logger.error("Can't deposit grams: %s", error)
+            logger.error("Can't BalanceManagerQueue._decrease_balance: %s", error)
         }
     }
     
@@ -184,7 +181,7 @@ class BalanceManager {
 
 		var arr = []
         res.forEach(element => {
-            arr.add(element.aggregated_transaction_id)
+            arr.push(element.aggregated_transaction_id)
         });
 
 		return arr;

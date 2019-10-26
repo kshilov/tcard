@@ -125,8 +125,8 @@ class BotNotificationManager{
 
         try{
             var channel_name = data['tgUrl']
-            var message = await i18n.t('aff_channel_message', data)
 
+            var message = i18n.t(i18n.current_locale, 'aff_channel_message', data)
 
             await this.bot.telegram.sendMessage(channel_name, message)
         }catch(err){

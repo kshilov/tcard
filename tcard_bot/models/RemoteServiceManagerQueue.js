@@ -36,7 +36,32 @@ module.exports = function(sequelize, DataTypes) {
 	RemoteServiceManagerQueue.prototype.done = async function() {
 		this.status = QueueStatus.done
 		this.save()
-    }
+	}
+	
+	RemoteServiceManagerQueue.new_channel_messages = async function(){
+		var res = await RemoteServiceManagerQueue.findAll({
+			where :{
+				status : QueueStatus.new,
+				type : QueueType.messages
+			},
+			limit : 50
+		})
+
+		return res;
+	}
+
+	RemoteServiceManagerQueue.new_transactions = async function(){
+		var res = await RemoteServiceManagerQueue.findAll({
+			where :{
+				status : QueueStatus.new,
+				type : QueueType.transactions
+			},
+			limit : 50
+		})
+
+		return res;
+	}
+
 
 	return RemoteServiceManagerQueue;
 };

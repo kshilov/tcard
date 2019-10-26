@@ -99,7 +99,7 @@ class RemoteServiceManager {
             return;
         }
         axios.post(UPDATE_TRANSACTIONS_PAID, 
-            JSON.stringify(aggregated_transaction_ids))
+            { data : aggregated_transaction_ids})
         .then(response => {
             this.db.BalanceManagerQueue.sync_list(aggregated_transaction_ids)
         })
@@ -113,8 +113,9 @@ class RemoteServiceManager {
         if (aggregated_messages_ids.length <= 0){
             return;
         }
+          
         axios.post(UPDATE_MESSAGES_PUBLISHED, 
-            JSON.stringify(aggregated_messages_ids))
+            { data : aggregated_messages_ids})
         .then(response => {
             this.db.ChannelMessageManagerQueue.sync_list(aggregated_messages_ids)
         })

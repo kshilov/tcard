@@ -456,7 +456,9 @@ def get_transactions():
 # @login_required
 # @service_access_level
 def update_tx_paid():
-    transactions_id = request.json
+    rq = request.json
+    transactions_id = rq['data']
+
     if (len(transactions_id) <= 0):
         return ''
 
@@ -469,7 +471,8 @@ def update_tx_paid():
 # @login_required
 # @service_access_level
 def update_tx_handled():
-    transactions_id = request.json
+    rq = request.json
+    transactions_id = rq['data']
     if (len(transactions_id) <= 0):
         return ''
 
@@ -482,7 +485,6 @@ def update_tx_handled():
 # @service_access_level
 def get_messages():
     try:
-
         messages = MessageQueue.query.filter(and_(
             MessageQueue.status == MESSAGE_STATUS['NEW']
             )).limit(50).all()
@@ -502,7 +504,8 @@ def get_messages():
 # @login_required
 # @service_access_level
 def update_messages_published():
-    messages_id = request.json
+    rq = request.json
+    messages_id = rq['data']
     if (len(messages_id) <= 0):
         return ''
 
@@ -516,7 +519,8 @@ def update_messages_published():
 # @login_required
 # @service_access_level
 def create_tx_deposit():
-    users = request.json
+    rq = request.json
+    users = rq['data']
     if (len(users) <= 0):
         return ''
 
