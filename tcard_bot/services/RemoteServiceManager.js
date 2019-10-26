@@ -1,6 +1,6 @@
 'use strict';
 
-const {RSManagerQueueStatus, RSManagerQueueType, SETUP_STEPS} = require("../helpers/constants");
+const {QueueStatus, QueueType, SETUP_STEPS} = require("../helpers/constants");
 
 
 const polling_interval = process.env.POLLING_INTERVAL;
@@ -14,12 +14,12 @@ const db = require('../models')
 
 const logger = require('../helpers/logger')
 
+const aff_domain = process.env.AFF_FRONTEND_DOMAIN
+const GET_TRANSACTIONS = aff_domain + '/balance/get/transactions'
+const UPDATE_TRANSACTIONS_PAID = aff_domain + '/balance/update/transactions/paid'
 
-const GET_TRANSACTIONS = 'http://127.0.0.1:5000/balance/get/transactions'
-const UPDATE_TRANSACTIONS_PAID = 'http://127.0.0.1:5000/balance/update/transactions/paid'
-
-const GET_MESSAGES = 'http://127.0.0.1:5000/messages/get'
-const UPDATE_MESSAGES_PUBLISHED = 'http://127.0.0.1:5000/messages/update/published'
+const GET_MESSAGES = aff_domain + '/messages/get'
+const UPDATE_MESSAGES_PUBLISHED = aff_domain + '/messages/update/published'
 
 class RemoteServiceManager {
     constructor(){
@@ -56,8 +56,8 @@ class RemoteServiceManager {
     async _handle_transactions(transactions){
         await this.db.RemoteServiceManagerQueue.create(
             {
-                status : RSManagerQueueStatus.new,
-                type : RSManagerQueueType.transactions,
+                status : QueueStatus.new,
+                type : QueueType.transactions,
                 message : JSON.stringify(transactions)
             }
         )
@@ -66,8 +66,8 @@ class RemoteServiceManager {
     async _handle_messages(messages){
         await this.db.RemoteServiceManagerQueue.create(
             {
-                status : RSManagerQueueStatus.new,
-                type : RSManagerQueueType.messages,
+                status : QueueStatus.new,
+                type : QueueType.messages,
                 message : JSON.stringify(messages)
             }
         )
@@ -110,7 +110,7 @@ class RemoteServiceManager {
 
     async update_messages(data){
         var aggregated_messages_ids = data['aggregated_messages_ids']
-        if (remote_msgs_ids.length <= 0){
+        if (aggregated_messages_ids.length <= 0){
             return;
         }
         axios.post(UPDATE_MESSAGES_PUBLISHED, 

@@ -76,6 +76,8 @@ module.exports = {
     QueueStatus,
     QueueType,
     NotificationType,
+    NotificationStatus,
     SETUP_STEPS,
-    WALLET_ERROR_CODES
+    WALLET_ERROR_CODES,
+    BOT_NOTIFICATION_ERROR
 }

@@ -260,16 +260,21 @@ def offer():
 def offerList():
     offers = list()
     if current_user.channels:
-        categories = CategoryListAdv.query.join(CategoryListAff, CategoryListAff.categoryId == CategoryListAdv.categoryId).filter(CategoryListAdv.id == current_user.channels[0].categoryListAff[0].id).all()
+        offersAll = Offer.query.filter_by(status='ACTIVE').all()
+        for offer in offersAll:
+            offers.append(offer)
+
+        ### I've just commented your code - it's not working, just debug this.
+        # THIS: categories = CategoryListAdv.query.join(CategoryListAff, CategoryListAff.categoryId == CategoryListAdv.categoryId).filter(CategoryListAdv.id == current_user.channels[0].categoryListAff[0].id).all()
         ##offers = Offer.query.filter( and_(Offer.categoryListAdv[0].categoryId == categories[0].categoryId, Offer.status == 'ACTIVE') ).all()
         #if not current_user.tasks:
-        offersAll = Offer.query.filter_by(status='ACTIVE').all()
+        # THIS: offersAll = Offer.query.filter_by(status='ACTIVE').all()
         #else:
         #    accepted_offers = Offer.query.filter(Offer.tasks.contains(current_user.tasks)).all()
         #    offersAll = Offer.query.join(accepted_offers, accepted_offers.id != Offer.id).filter_by(status='ACTIVE').all()
-        for offer in offersAll:
-            if offer.categoryListAdv[0].categoryId == categories[0].categoryId:
-                offers.append(offer)
+        # THIS: for offer in offersAll:
+        # THIS:    if offer.categoryListAdv[0].categoryId == categories[0].categoryId:
+        # THIS:        offers.append(offer)
 
     form = CreateOfferListForm()
     if form.validate_on_submit():

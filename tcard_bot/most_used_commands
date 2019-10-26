@@ -2,3 +2,4 @@ pino app.js | pino-pretty
 node ./app.js | pino-pretty -c -t
 node app.js | pino-tee warn ./warn-logs > ./all-logs
 ssh -R 80:localhost:5050 serveo.net
+celery worker -A app.celery --loglevel=info

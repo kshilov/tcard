@@ -113,7 +113,7 @@ module.exports = function(sequelize, DataTypes) {
         var res = await WalletTransaction.findAll({
             where : {
                 status : 
-                    this.db.Sequelize.and(
+                    db.Sequelize.and(
                        {$ne : TXWalletStatus.done},
                        {$ne : TXWalletStatus.failed}
                     )

@@ -1,12 +1,13 @@
 'use strict';
 
+const logger = require('../helpers/logger')
+
 const db = require('../models')
 
 const polling_interval = process.env.TX_WALLET_POLLING_INTERVAL;
 
 const {TXWalletType, TXWalletStatus} = require("../helpers/constants");
 
-const logger = require('../helpers/logger')
 
 class DbWalletNotificationManager{
        
@@ -42,8 +43,12 @@ class DbWalletNotificationManager{
         }
 
         try {
+            logger.error("Before")
+
             var new_txs = await this.db.WalletTransaction.need_to_be_done()
             
+            logger.error("After: %s", new_txs)
+
             new_txs.forEach(tx => {
                 this._handle_transaction(tx)
             });
