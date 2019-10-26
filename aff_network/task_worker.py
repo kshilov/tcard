@@ -5,7 +5,7 @@ from global_web_instances import app, db
 
 import telebot
 
-bot = telebot.TeleBot(botId)
+bot = telebot.TeleBot(BOT_TOKEN)
 
 class TaskWorker():
     __instance = None

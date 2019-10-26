@@ -294,6 +294,7 @@ class Transaction(db.Model):
     advId = db.Column(db.String, db.ForeignKey('user.username'), nullable=False) # tg_id
     affId = db.Column(db.String, db.ForeignKey('user.username'), nullable=True) # tg_id
     userTgId = db.Column(db.Integer, index=True, nullable=True)
+
     __table_args__=(UniqueConstraint('userTgId', 'taskId', name='unique_action'),)
 
     transaction_time = db.Column(db.DateTime(), default=datetime.utcnow)
