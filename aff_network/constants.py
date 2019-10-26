@@ -69,7 +69,8 @@ from datetime import datetime
 #postTime = '2019-10-11 18:22:56'
 postTime = datetime(2019, 10, 11, 18, 22, 56)
 
-botId = '596029472:AAGMmAiJ6Oj7Kg3-wgn9HfGTbbtQSkXJhz8'
+#BOT_TOKEN = '596029472:AAGMmAiJ6Oj7Kg3-wgn9HfGTbbtQSkXJhz8'
+BOT_TOKEN = 'bot933836827:AAH-j2XAQf-zo5Ov6eduhXwO3B5LP9pjmLE'
 
 botLink = ''
 actionLink = 'http://127.0.0.1:5000/action'

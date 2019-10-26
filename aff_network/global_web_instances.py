@@ -44,10 +44,14 @@ app.config['SECRET_KEY'] = 'tgKEYsecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['CELERY_TIMEZONE'] = 'UTC'
+app.config['CELERY_RESULT_BACKEND'] = 'amqp://guest:guest@localhost:5672//'
+
 app.config['CELERYBEAT_SCHEDULE'] = {
-    # Executes every minute
-    'periodic_task-every-minute': {
-        'task': 'periodic_task',
+    'test-celery': {
+        'task': 'celery_hanlers.parse_subscribers',
+        #'task': 'parse_subscribers',
+        # Every minute
         'schedule': crontab(minute="*")
     }
 }

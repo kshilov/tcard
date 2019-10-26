@@ -120,7 +120,9 @@ def emit_track_subscribe():
 # Need to create periodic tasks, that will start periodicaly
 # link to example: https://github.com/borosuman/flask-celery-periodic-task/blob/master/app.py
 # NOT HERE, but to the place where celery configured
-#@celery.task(name ="periodic_task")
-#def parse_subscribers():
-#    print('Hi! from periodic_task')
-#    app.logger.info("Hello! from periodic task")
+@celery.task(name="parse_subscribers")
+def parse_subscribers():
+    
+    app.logger.info("--------------------Hello! from periodic task-------------------")
+
+

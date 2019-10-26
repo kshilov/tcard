@@ -68,7 +68,17 @@ def admin_access_level():
 
 @app.route("/about")
 def about():
+    # test request for check_subscribe user
+    #action_worker = ActionWorker.getInstance()
+    #channel_id = "@tcardtestchannel"
+    #user_tg_id = 275140402
+    #res = action_worker.check_subscribe(channel_id, user_tg_id)
+    #if res:
+        #app.logger.info('---------------------------------------------------')
+        #app.logger.info('success')
+
     return render_template('about.html', title='About')
+
 
 @app.route("/access_error_page")
 def access_error_page():
@@ -385,7 +395,7 @@ def messages():
 
 
 # /action?task_id=1&user_id=1
-# /action?task_id=3&user_id=@GreenMrGreen
+# /action?task_id=2&user_id=275140402
 @app.route("/action", methods=['GET', 'POST'])
 def action():
     try:

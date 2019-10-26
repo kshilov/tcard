@@ -30,7 +30,6 @@ class ActionWorker():
         balance_worker = BalanceWorker.getInstance()
         offer = task.offer
 
-        # add check here - if user_tg_id is unique for current task
         transactionType = TRANSACTION_TYPE['WITHDRAW']
         actionType = OFFER_TYPE['CLICK']
         transactionStatus = TRANSACTION_STATUS['NEW']
@@ -44,7 +43,7 @@ class ActionWorker():
         elif offer.offerType == 'SUBSCRIBE':
             actionType = OFFER_TYPE['PRESUBSCRIBE']
             try:
-                emit_track_subscribe.apply_async(countdown=5)
+                emit_track_subscribe.apply_async(countdown=10)
             except Exception as e:
                 app.logger.info("action emit_track_subscribe.apply_async:%s" % str(e))
         elif offer.offerType == 'CLICK':
@@ -65,16 +64,16 @@ class ActionWorker():
         
         return link
 
+
     def update_subscribers_list(self):
         balance_worker = BalanceWorker.getInstance()
         transactions = Transaction.query.filter_by(actionType=OFFER_TYPE['PRESUBSCRIBE']).limit(100).all()
-        '''
+        
         for t in transactions:
             try:
                 task = t.task
-                if self.track_subscriber(t.id, task, t.userTgId):
+                if self.check_subscribe(task.offer.tgLink, t.userTgId):
                     if balance_worker.check_balance(task.offer.advertId):
-                        #balance_worker.change_balance(task.affilId, task.offer.price)
                         adv_user = task.offer.user
                         if adv_user:
                             adv_user.change_balance_action(task.offer.price)
@@ -84,14 +83,52 @@ class ActionWorker():
                             aff_user.change_balance_action(task.offer.price)
 
                         t.subscribe()
-            except:
-                pass
+            except Exception as e:
+                app.logger.info("action update_subscribers_list:%s" % str(e))
+                
 
-        db.session.commit()
-        '''            
+    def check_subscribe(self, channel_id, user_tg_id):
+        # importing the requests library 
+        import requests
+  
+        # api-endpoint 
+        URL = "https://api.telegram.org/" + BOT_TOKEN + "/getChatMember"
+  
+        # defining a params dict for the parameters to be sent to the API 
+        PARAMS = {'chat_id':channel_id, 'user_id':user_tg_id} 
+  
+        # sending get request and saving the response as response object 
+        r = requests.get(url = URL, params = PARAMS) 
+  
+        # extracting data in json format 
+        data = r.json() 
+        app.logger.info(data)
+        try:
+            status = data['ok']
 
+            if not status:
+                if data['description']:
+                    app.logger.info("action check_subscribe, request error: " + data['description'])
+                return False
+
+            result = data['result']
+            app.logger.info(result)
+            res_status = result['status']
+            app.logger.info(res_status)
+
+            if res_status == 'member':
+                return True
+            else:
+                return False
+
+        except Exception as e:
+            app.logger.info("action check_subscribe:%s" % str(e))
+            return False
+
+
+    '''
     # Need to view in a table Subscribers and check if user exist
-    def track_subscriber(self, transaction_id, task, user_tg_id):
+    def track_subscriber(self, task, user_tg_id):
         channels = self.get_list_of_channels
 
         # channel_name = 'TestChannel12358' # test
@@ -116,4 +153,5 @@ class ActionWorker():
                    if d.is_channel}
 
         return channels
+    '''
 
