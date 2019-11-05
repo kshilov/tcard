@@ -53,6 +53,9 @@ All methods start here
 */
 	User.associate = function(models) {
 		User.hasOne(models.DbWallet, {onDelete: 'restrict'});
+		User.hasMany(models.BotInstalls, {onDelete: 'restrict'});
+		User.hasMany(models.Offer, {onDelete: 'restrict'});
+		
 		db = models;
 	};
 	

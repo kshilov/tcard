@@ -56,6 +56,20 @@ const WALLET_ERROR_CODES = {
     undefined_user : -5
 }
 
+const OFFER_TYPE = {
+    num : 1,
+    sum : 2,
+    unknown : 0
+}
+
+const OFFER_STATUS = {
+    new : 0,
+    active : 1,
+    paused : 2,
+    finished : 3,
+}
+
+
 
 const SETUP_STEPS = {
     db : 1,
@@ -79,5 +93,7 @@ module.exports = {
     NotificationStatus,
     SETUP_STEPS,
     WALLET_ERROR_CODES,
-    BOT_NOTIFICATION_ERROR
+    BOT_NOTIFICATION_ERROR,
+    OFFER_TYPE,
+    OFFER_STATUS
 }
