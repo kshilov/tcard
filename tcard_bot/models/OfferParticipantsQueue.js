@@ -23,18 +23,20 @@ module.exports = function(sequelize, DataTypes) {
 			type: DataTypes.INTEGER,
 			allowNull: false
         },
-        username : {
-			type: DataTypes.STRING,
-			allowNull: true
-        },
         slot_selected : {
             type: DataTypes.INTEGER,
-			allowNull: true
+			allowNull: true,
+			defaultValue: 0
         },
         status : {
             type: DataTypes.INTEGER,
-			allowNull: true        
-        }
+			allowNull: true,
+			defaultValue: 0   
+		},
+		hello_input : {
+			type: DataTypes.TEXT,
+			allowNull: true,        
+		}
 	}, {
 		timestamps: true,
 		schema: 'public'
@@ -45,16 +47,15 @@ module.exports = function(sequelize, DataTypes) {
 		db = models;
 	};
 
-	OfferParticipantsQueue.get_participant = async function(tgId, offer_id){
-		var is_exist = await db.OfferParticipantsQueue.findOne({
-			where : {
-				tgId : tgId,
-				OfferId : offer_id
-			}
-		})
-		return is_exist;
+	OfferParticipantsQueue.prototype.set_slot = async function(slot){
+		this.slot_selected = slot;
+		this.save()
 	}
 
+	OfferParticipantsQueue.prototype.save_hello_input = async function(data){
+		this.hello_input = JSON.stringify(data)
+		this.save()
+	}
 
 	return OfferParticipantsQueue;
 };

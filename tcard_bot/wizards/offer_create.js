@@ -73,6 +73,8 @@ async function type_steps_process(ctx){
         if (!ctx.wizard.state.amount){
             if (ctx.wizard.state.asked_participants){
                 ctx.wizard.state.amount = ctx.message.text;
+
+                ctx.reply(ctx.i18n.t('create_offer_discount_price'))    
                 return;
             }
             ctx.wizard.state.asked_participants = 1;
@@ -81,14 +83,10 @@ async function type_steps_process(ctx){
         }
 
         if (!ctx.wizard.state.dicount_price){
-            if (ctx.wizard.state.asked_price){
                 ctx.wizard.state.dicount_price = ctx.message.text;
+
                 ctx.reply(ctx.i18n.t('create_offer_hello'))
                 return ctx.wizard.next()
-            }
-            ctx.wizard.state.asked_price = 1;
-            ctx.reply(ctx.i18n.t('create_offer_discount_price'))
-            return;
         }
     
     }else if (ctx.wizard.state.offerType == 'enter_sum_4'){
@@ -96,6 +94,8 @@ async function type_steps_process(ctx){
         if (!ctx.wizard.state.amount){
             if (ctx.wizard.state.asked_amount){
                 ctx.wizard.state.amount = ctx.message.text;
+
+                ctx.reply(ctx.i18n.t('create_offer_slot_message'))       
                 return;
             }
             ctx.wizard.state.asked_amount = 1;
@@ -103,16 +103,21 @@ async function type_steps_process(ctx){
             return;
         }
 
+        if (!ctx.wizard.state.slot_message){
+                ctx.wizard.state.slot_message = ctx.message.text;
+
+                ctx.reply(ctx.i18n.t('create_offer_sum_slot'))           
+                return;
+        }
+
+
         if (!ctx.wizard.state.slots){
-            if (ctx.wizard.state.asked_slots){
                 ctx.wizard.state.slots = ctx.message.text;
+
                 ctx.reply(ctx.i18n.t('create_offer_hello'))
                 return ctx.wizard.next() 
-            }
-            ctx.wizard.state.asked_slots = 1;
-            ctx.reply(ctx.i18n.t('create_offer_sum_slot'))       
-            return;
         }
+
     }
 
     return;
@@ -162,8 +167,6 @@ async function enter_due_date(ctx){
     return ctx.wizard.next()
 
 }
-
-
 
 
 async function final_offer_approved(ctx){

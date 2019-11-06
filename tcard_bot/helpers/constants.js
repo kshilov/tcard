@@ -62,6 +62,11 @@ const OFFER_TYPE = {
     unknown : 0
 }
 
+const OFFER_CODES = {
+    unknown_error : -1,
+    exist : -2
+}
+
 const OFFER_STATUS = {
     new : 0,
     active : 1,
@@ -100,5 +105,6 @@ module.exports = {
     OFFER_TYPE,
     OFFER_STATUS,
     APPLY_BUTTON_PREFIX,
-    BOT_URL_PREFIX
+    BOT_URL_PREFIX,
+    OFFER_CODES
 }

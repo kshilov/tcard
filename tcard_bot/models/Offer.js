@@ -1,10 +1,12 @@
 'use strict';
+const Markup = require('telegraf/markup')
+const extra = require('telegraf/extra')
 
 const logger = require('../helpers/logger')
 
 const {i18n} = require('../middlewares/i18n')
 
-const {OFFER_TYPE, OFFER_STATUS} = require("../helpers/constants");
+const {OFFER_TYPE, OFFER_STATUS, OFFER_CODES} = require("../helpers/constants");
 const {BOT_URL_PREFIX, APPLY_BUTTON_PREFIX} = require("../helpers/constants");
 
 /*
@@ -67,6 +69,8 @@ module.exports = function(sequelize, DataTypes) {
 	
 	Offer.associate = function(models) {
 		Offer.belongsTo(models.User);
+		Offer.hasMany(models.OfferParticipantsQueue);
+
 		db = models;
 	};
 
@@ -186,6 +190,115 @@ module.exports = function(sequelize, DataTypes) {
 
 	Offer.prototype.get_url = async function(){
 		return this.url;
+	}
+
+	Offer.prototype.is_sum = function(){
+		if (this.type == OFFER_TYPE.sum){
+			return true;
+		} 
+
+		return false;
+	}
+
+	Offer.prototype.is_finished = function(){
+		if (this.status == OFFER_STATUS.paused || this.status == OFFER_STATUS.finished){
+			return true;
+		}
+
+		return false;
+	}
+
+	Offer.prototype.get_participant = async function(tgId){
+		var participant = await db.OfferParticipantsQueue.findOne({
+			where : {
+				tgId : tgId,
+				OfferId: this.id
+			}
+		})
+
+		return participant;
+	}
+
+	Offer.prototype.add_participant = async function(tgId){
+		var participant = null;
+
+		try{
+			var exist = await db.OfferParticipantsQueue.findOne({
+					where : {
+						tgId : tgId,
+						OfferId: this.id
+					}
+				})
+			if (exist){
+				return OFFER_CODES.exist;
+			}
+
+			participant = await db.OfferParticipantsQueue.create(
+				{
+					tgId : tgId,
+					OfferId: this.id
+				}
+			)
+		}catch(error){
+			logger.error("FAILED: Offer.add_participant error: %s", error)
+			return OFFER_CODES.unknown_error
+		}
+
+		return participant;
+	}
+
+	Offer.prototype.get_hello_message = async function(){
+		var data = JSON.parse(this.data)
+
+		var hello_message = data['messageHello']
+
+		var formated_message = await i18n.t(i18n.current_locale, 'apply_offer_hello_message', {hello : hello_message})
+
+		return formated_message;
+	}
+
+	Offer.prototype.get_slots_array = async function(){
+		var data = JSON.parse(this.data)
+		var slots = data['slots']
+
+		return slots.split(',')
+	}
+
+	Offer.prototype.get_slot_message = async function(){
+		var data = JSON.parse(this.data)
+
+		var slot_message = data['slot_message']
+
+		var formated_message = await i18n.t(i18n.current_locale, 'apply_offer_slot_message', {slot_message : slot_message})
+
+		var variants = await this.get_slots_array()
+	
+		var buttons = []
+		var i = 0;
+		variants.forEach(function(item){
+			var handle = 'value-' + i;
+			i = i +1;
+			buttons.push(Markup.callbackButton(item, handle));
+		});
+
+		var keyboard = Markup.inlineKeyboard(buttons);
+		return {
+			keyboard: keyboard, 
+			message: formated_message
+		}
+	}
+
+	Offer.prototype.convert_callback_to_slot_value = async function(data){
+		if (!data){
+			return undefined;
+		}
+		
+		var index = data.split('-')[1]
+
+		var variants = await this.get_slots_array()
+
+		return variants[index]
+		
 	}
 
 	Offer.prototype.published = async function(chat_id, message_id) {
