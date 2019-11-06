@@ -27,7 +27,7 @@ module.exports = function(sequelize, DataTypes) {
 			type: DataTypes.STRING,
 			allowNull: true
         },
-        slot : {
+        slot_selected : {
             type: DataTypes.INTEGER,
 			allowNull: true
         },
@@ -44,6 +44,16 @@ module.exports = function(sequelize, DataTypes) {
 		OfferParticipantsQueue.belongsTo(models.Offer);
 		db = models;
 	};
+
+	OfferParticipantsQueue.get_participant = async function(tgId, offer_id){
+		var is_exist = await db.OfferParticipantsQueue.findOne({
+			where : {
+				tgId : tgId,
+				OfferId : offer_id
+			}
+		})
+		return is_exist;
+	}
 
 
 	return OfferParticipantsQueue;

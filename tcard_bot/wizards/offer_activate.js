@@ -2,6 +2,9 @@ const Composer = require('telegraf/composer')
 const Markup = require('telegraf/markup')
 const WizardScene = require('telegraf/scenes/wizard')
 
+const extra = require('telegraf/extra')
+
+
 const logger = require('../helpers/logger')
 const {i18n} = require('../middlewares/i18n')
 
@@ -73,11 +76,23 @@ async function leave_scene(ctx){
 
                 var message = await offer.get_message()
 
-                await bot.telegram.sendMessage(channel_name, message, Markup.inlineKeyboard([
-                    Markup.urlButton(ctx.i18n.t('offer_button'), 'https://t.me/tcard_bot')
-            ]).extra())
-    
+                var button_url = await offer.get_url()
+
+                var kb = Markup.inlineKeyboard([Markup.urlButton(ctx.i18n.t('offer_button'), button_url)])
+                var published = await bot.telegram.sendMessage(channel_name, message, extra.markup(kb).markdown())
+
+                if (!published){
+                    throw("offer_active:leave_scene failed to published")
+                }
+
+                var message_id = published.message_id;
+                var chat_id = published.chat.id;
+                
+                await offer.published(chat_id, message_id)
+
                 await offer.activate()
+
+                ctx.reply(`Оффер успешно опубликован chat_id:${chat_id} message_id:${message_id}`)
             }catch(error){
                 logger.error("FAILED: offer_activate leave_scene %s", error)
                 ctx.reply('Не получается опубликовать оффер')

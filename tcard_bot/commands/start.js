@@ -3,17 +3,23 @@
 const sendStart = require('../helpers/sendStart')
 const db = require('../models');
 const logger = require('../helpers/logger')
+const check_payload = require('../helpers/check_payload')
 
 async function init(bot) {
     // Start command
     bot.start(async ctx => {
         const telegram_id = ctx.from.id;
         
-        const user = await db.User.get_user(telegram_id);
+        var user = await db.User.get_user(telegram_id);
+
 
         if (!user){
-            await db.User.complete_creation(ctx.from, ctx.chat.id);
-            return suggestWalletCreation(ctx);
+            user = await db.User.complete_creation(ctx.from, ctx.chat.id);
+        }
+
+        var payload_handle = await check_payload(ctx, ctx.startPayload)
+        if (payload_handle){
+            return payload_handle(ctx)
         }
 
         return sendStart(ctx);

@@ -4,11 +4,14 @@ const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
 const create_offer_wizard = require('../wizards/offer_create')
 const activate_offer_wizard = require('../wizards/offer_activate')
+const apply_offer_wizard = require('../wizards/offer_apply')
 
 const logger = require('../helpers/logger')
 
 
-const stage = new Stage([create_offer_wizard,activate_offer_wizard])
+const stage = new Stage([create_offer_wizard,
+  activate_offer_wizard,
+  apply_offer_wizard])
 
 
 async function setupStages(bot) {
@@ -23,7 +26,6 @@ async function setupStages(bot) {
     bot.command('activate_offer', async ctx => {
       return ctx.scene.enter('activate-offer-wizard')
     })
-
 
   }catch(error){
     logger.error("FAILED: bot middleware stages setup failed: %s", error);

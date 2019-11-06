@@ -83,6 +83,9 @@ const SETUP_STEPS = {
     bot_started : 9
 }
 
+const BOT_URL_PREFIX = 'https://t.me/'
+const APPLY_BUTTON_PREFIX = 'applyoffer-'
+
 
 module.exports = {
     TXWalletType,
@@ -95,5 +98,7 @@ module.exports = {
     WALLET_ERROR_CODES,
     BOT_NOTIFICATION_ERROR,
     OFFER_TYPE,
-    OFFER_STATUS
+    OFFER_STATUS,
+    APPLY_BUTTON_PREFIX,
+    BOT_URL_PREFIX
 }

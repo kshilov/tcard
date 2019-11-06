@@ -194,11 +194,18 @@ async function leave_scene(ctx){
         var data = ctx.wizard.state
         const telegram_id = ctx.from.id;
 
+        var bot_name = ctx.options.username;
+        if (!bot_name){
+            ctx.reply('bot_name не может быть пустым напишите в /support.')
+            return ctx.scene.leave()
+        }
+
         var offer = await db.Offer.new_offer(telegram_id, data)
 
         if (!offer || offer < 0){
             ctx.reply('Что-то пошло не так, не полуичлось создать оффер, попробуйте сначала /create_offer.')
         }else{
+            await offer.set_url(bot_name)
             ctx.reply('Оффер успешно создан, выберите /offer_list из меню.')
         }
     } else{

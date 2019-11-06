@@ -5,6 +5,7 @@ const logger = require('../helpers/logger')
 const {i18n} = require('../middlewares/i18n')
 
 const {OFFER_TYPE, OFFER_STATUS} = require("../helpers/constants");
+const {BOT_URL_PREFIX, APPLY_BUTTON_PREFIX} = require("../helpers/constants");
 
 /*
 The core difference is the type of an offer:
@@ -43,11 +44,15 @@ module.exports = function(sequelize, DataTypes) {
             type: DataTypes.INTEGER,
 			allowNull: true 
 		},
+		url : {
+            type: DataTypes.STRING,
+			allowNull: true,
+		},
 		due_date : {
 			type: DataTypes.DATE,
 			allowNull: true
 		},
-		channels_published : {
+		published_to : {
             type: DataTypes.TEXT,
 			allowNull: true,
 		},
@@ -86,7 +91,6 @@ module.exports = function(sequelize, DataTypes) {
 			attributes: ['id'], 
 			raw: true,
 			where : {
-				status : OFFER_STATUS.new,
 				UserId : current_user.id
 			}
 		})
@@ -168,6 +172,31 @@ module.exports = function(sequelize, DataTypes) {
 		this.due_date = data['dueDate'];
 		this.data = JSON.stringify(data)
 
+		this.save()
+	}
+
+	Offer.prototype.set_url = async function(bot_name){
+		var url = BOT_URL_PREFIX + bot_name + '?start=' + APPLY_BUTTON_PREFIX + this.id;
+
+		this.url = url
+		this.save()
+
+		return url;
+	}
+
+	Offer.prototype.get_url = async function(){
+		return this.url;
+	}
+
+	Offer.prototype.published = async function(chat_id, message_id) {
+		var current_postings = JSON.parse(this.published_to);
+		if (!current_postings){
+			current_postings = []
+		}
+
+		current_postings.push({chat_id:chat_id, message_id:message_id})
+
+		this.published_to = JSON.stringify(current_postings)
 		this.save()
 	}
 
