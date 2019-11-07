@@ -1,4 +1,4 @@
-export USE_WEBHOOK="true"
+export USE_WEBHOOK="false"
 export WEBHOOK_DOMAIN="adyellow.com"
 export AFF_FRONTEND_DOMAIN="http://127.0.0.1:5000"
 

@@ -1,4 +1,4 @@
-$env:USE_WEBHOOK = "true";
+$env:USE_WEBHOOK = "false";
 $env:WEBHOOK_DOMAIN = "0b1dc8c9.ngrok.io";
 $env:AFF_FRONTEND_DOMAIN = "http://127.0.0.1:5000";
 
