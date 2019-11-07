@@ -17,3 +17,5 @@ ssh -R 80:localhost:8080 ssh.localhost.run
 
 $env:TOKEN = "933836827:AAH-j2XAQf-zo5Ov6eduhXwO3B5LP9pjmLE"; tcard_bot
 $env:TOKEN = "918154691:AAGAPhMeh0M0EZiJM8N8G5ro0Czy9SnwqTo"; tcard_sport_bot
+
+https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04 - how to work with postgresql
