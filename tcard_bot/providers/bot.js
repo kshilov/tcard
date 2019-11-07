@@ -9,6 +9,9 @@ const bot_listen_port = process.env.BOT_LISTEN_PORT;
 const {SETUP_STEPS} = require("../helpers/constants");
 
 const logger = require('../helpers/logger')
+const fs = require('fs');
+const path = require('path');
+const basename = path.basename(__filename);
 
 // Create bot
 const bot = new Telegraf(process.env.TOKEN, {
@@ -16,6 +19,19 @@ const bot = new Telegraf(process.env.TOKEN, {
 })
 
 bot.webhookReply = false;
+
+// TLS options
+const tlsOptions = {
+  key: fs.readFileSync(__dirname + '/server-key.pem'),
+  cert: fs.readFileSync(__dirname + '/server-cert.pem'),
+  ca: [
+    // This is necessary only if the client uses a self-signed certificate.
+    fs.readFileSync(__dirname + '/client-cert.pem')
+  ]
+}
+
+var custom_cert = fs.readFileSync(__dirname + '/client-cert.pem');
+
 
 // Get bot's username
 bot.telegram
