@@ -6,7 +6,8 @@ const AFF_LINK = 'http://127.0.0.1:5000/action'
 const logger = require('../helpers/logger')
 
 async function init(bot) {
-    // Start command
+
+    /*
     bot.command('task', async ctx => {
         const args = message.text.split(/ +/)
         const task_id = args[1];
@@ -20,6 +21,7 @@ async function init(bot) {
 
         return sendTaskLink(ctx, task_url);
     })
+    */
 }
 
 async function sendErrorLink(ctx) {

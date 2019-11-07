@@ -13,6 +13,15 @@ const check_offer_data = require('../helpers/check_offer_data')
 const steps = new Composer()
 
 async function start_offer_dialog(ctx){
+    // TODO: remove this on production
+    var admin_id = ctx.from.id;
+    if (admin_id != '389959952'){
+        var m = "HACKED ATTEMPT: someone try to use offer_create " + admin_id
+        logger.error(m)
+        return ctx.scene.leave()
+    }
+    
+    
     ctx.reply(ctx.i18n.t('create_offer_dialog') , 
     Markup.inlineKeyboard([
         Markup.callbackButton('➡️ Start', 'first_step')

@@ -19,6 +19,7 @@ const SUM_STEP = 3;
 const apply_steps = new Composer()
 
 async function apply_dialog(ctx){
+
     if (!ctx.state.apply_offer_id){
         ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
         return ctx.scene.leave()    

@@ -262,7 +262,7 @@ module.exports = function(sequelize, DataTypes) {
 
 			var slot_selected = 0;
 			if (this.type == OFFER_TYPE.sum){
-				slot_selected = data['slot_selected'];
+				slot_selected = Number(data['slot_selected']);
 			}
 
 			participant = await db.OfferParticipantsQueue.create(
@@ -382,7 +382,7 @@ module.exports = function(sequelize, DataTypes) {
 		if (this.type == OFFER_TYPE.num){
 			this.current = this.current + 1;
 		}else{
-			this.current = this.current + slot_selected;
+			this.current = Number(this.current) + Number(slot_selected);
 		}
 
 		if (this.current >= this.total){

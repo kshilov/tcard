@@ -7,6 +7,7 @@ const logger = require('../helpers/logger')
 
 function init(bot) {
 
+    /*
     bot.command('wallet', async ctx => {
         const telegram_id = ctx.from.id;
         
@@ -16,6 +17,7 @@ function init(bot) {
 
         return sendWallet(ctx);
     })
+    */
 }
 
 

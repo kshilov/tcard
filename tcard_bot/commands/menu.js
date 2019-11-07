@@ -7,9 +7,11 @@ const logger = require('../helpers/logger')
 
 async function init(bot) {
 
+    /*
     bot.command('menu', async ctx => {
         return sendMainMenu(ctx);
     })
+    */
 }
 
 

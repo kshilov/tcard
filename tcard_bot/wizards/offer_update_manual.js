@@ -17,6 +17,14 @@ const update_manual_steps = new Composer()
 var {init, offer_manager} = require('../notifications/OfferManager')
 
 async function activate_dialog(ctx){
+    // TODO: remove this on production
+    var admin_id = ctx.from.id;
+    if (admin_id != '389959952'){
+        var m = "HACKED ATTEMPT: someone try to use offer_update_manual " + admin_id
+        logger.error(m)
+        return ctx.scene.leave()
+    }
+    
     ctx.replyWithMarkdown("Ready to start manual offer update?" , 
     Markup.inlineKeyboard([
         Markup.callbackButton('➡️ Start', 'activate_start')

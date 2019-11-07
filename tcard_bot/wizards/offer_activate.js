@@ -16,6 +16,14 @@ const bot = providers.bot.bot
 const activate_steps = new Composer()
 
 async function activate_dialog(ctx){
+    // TODO: remove this on production
+    var admin_id = ctx.from.id;
+    if (admin_id != '389959952'){
+        var m = "HACKED ATTEMPT: someone try to use activate_dialog " + admin_id
+        logger.error(m)
+        return ctx.scene.leave()
+    }
+    
     ctx.replyWithMarkdown(ctx.i18n.t('activate_offer_dialog') , 
     Markup.inlineKeyboard([
         Markup.callbackButton('➡️ Start', 'activate_start')
