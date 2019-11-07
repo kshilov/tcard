@@ -47,6 +47,8 @@ function start() {
           )
           const webhookInfo = await bot.telegram.getWebhookInfo()
           logger.info("STEP %d - SUCCESS: telegram bot is up and running in webhook mode: %s",SETUP_STEPS['bot'], webhookInfo);
+          logger.info(webhookInfo);
+
         })
         .catch(err => logger.error("STEP %d - FAILED: telegram bot can't setup webhook %s",SETUP_STEPS['bot'], err));
     } else {

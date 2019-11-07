@@ -123,12 +123,11 @@ module.exports = function(sequelize, DataTypes) {
 				offer_type = OFFER_TYPE.sum
 			}
 
-
 			offer = await Offer.create(
 				{
 					type : offer_type,
 					status: OFFER_STATUS.new,
-					current: 0,
+					current: data['startAmount'],
 					total : data['amount'],
 					start_amount : data['startAmount'],
 					due_date : data['dueDate'],
@@ -151,11 +150,19 @@ module.exports = function(sequelize, DataTypes) {
 	Offer.prototype.activate = async function(){
 		this.status = OFFER_STATUS.active;
 		this.save()
-    }
+	}
+	
+	Offer.prototype.get_keyboard = async function(){
+		
+		var button_url = await this.get_url();
+        var kb = Markup.inlineKeyboard([Markup.urlButton(ctx.i18n.t('offer_button'), button_url)]);
+
+		return kb;
+	}
 
 	Offer.prototype.get_message = async function(){
 		var data = await this.get_data()
-		data['current'] = this.current + this.start_amount;
+		data['current'] = this.current;
 
 		var message = await i18n.t(i18n.current_locale, 'offer_num_post_template', data)
 		if (this.type == OFFER_TYPE.sum){
@@ -219,26 +226,30 @@ module.exports = function(sequelize, DataTypes) {
 		return participant;
 	}
 
-	Offer.prototype.add_participant = async function(tgId){
+	Offer.prototype.add_participant = async function(tgId, data){
 		var participant = null;
 
 		try{
-			var exist = await db.OfferParticipantsQueue.findOne({
-					where : {
-						tgId : tgId,
-						OfferId: this.id
-					}
-				})
+			var exist = await this.get_participant(tgId)
 			if (exist){
 				return OFFER_CODES.exist;
+			}
+
+			var slot_selected = 0;
+			if (this.type == OFFER_TYPE.sum){
+				slot_selected = data['slot_selected'];
 			}
 
 			participant = await db.OfferParticipantsQueue.create(
 				{
 					tgId : tgId,
-					OfferId: this.id
+					OfferId: this.id,
+					slot_selected : slot_selected,
+					hello_input : data['hello_input']
 				}
 			)
+			
+			await this.update(slot_selected)
 		}catch(error){
 			logger.error("FAILED: Offer.add_participant error: %s", error)
 			return OFFER_CODES.unknown_error
@@ -301,6 +312,7 @@ module.exports = function(sequelize, DataTypes) {
 		
 	}
 
+
 	Offer.prototype.published = async function(chat_id, message_id) {
 		var current_postings = JSON.parse(this.published_to);
 		if (!current_postings){
@@ -312,6 +324,50 @@ module.exports = function(sequelize, DataTypes) {
 		this.published_to = JSON.stringify(current_postings)
 		this.save()
 	}
+
+	Offer.prototype.active = async function() {
+		this.status = OFFER_STATUS.active;
+		this.save()
+	}
+
+	Offer.prototype.finished = async function() {
+		this.status = OFFER_STATUS.finished;
+		this.save()
+	}
+
+	Offer.prototype.paused = async function() {
+		this.status = OFFER_STATUS.paused;
+		this.save()
+	}
+
+
+
+	Offer.prototype.update = async function(slot_selected) {
+		if (this.type == OFFER_TYPE.num){
+			this.current = this.current + 1;
+		}else{
+			this.current = this.current + slot_selected;
+		}
+
+		if (this.total >= this.current){
+			this.status = OFFER_STATUS.finished;
+		}else{
+			this.status = OFFER_STATUS.updated;
+		}
+
+		this.save()
+	}
+
+	Offer.prototype.get_publications = function(){
+		var current_postings = JSON.parse(this.published_to);
+		if (!current_postings){
+			current_postings = []
+		}
+
+		return current_postings;
+	}
+
+
 
 
 

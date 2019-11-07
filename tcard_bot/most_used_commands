@@ -6,3 +6,13 @@ celery worker -A app.celery --loglevel=info
 
 SHOW client_encoding;
 SET client_encoding = 'UTF8';
+
+https://api.telegram.org/bot933836827:AAH-j2XAQf-zo5Ov6eduhXwO3B5LP9pjmLE/getUpdates
+
+URL for webhook:
+https://sermo.serveo.net/a5add194-30f7-4b7f-a400-8e49bf6ce7ee
+
+account type:	Trial
+e-mail address: 	ks.shilov@gmail.com
+password:	2z6bb3k7
+domain name:	hahatest.pagekite.me

@@ -1,5 +1,5 @@
 $env:USE_WEBHOOK = "true";
-$env:WEBHOOK_DOMAIN = "succedo.serveo.net";
+$env:WEBHOOK_DOMAIN = "Кирилл-zp5q.localhost.run";
 $env:AFF_FRONTEND_DOMAIN = "http://127.0.0.1:5000";
 
 $env:TOKEN = "933836827:AAH-j2XAQf-zo5Ov6eduhXwO3B5LP9pjmLE";

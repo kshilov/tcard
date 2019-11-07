@@ -39,16 +39,12 @@ async function apply_dialog(ctx){
 
     try{
         var tgId = ctx.from.id;
-        var res = await offer.add_participant(tgId)
-        if (res == OFFER_CODES.exist){
+        var exist = await offer.get_participant(tgId)
+        if (exist){
             ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_apply_exist'))
             return ctx.scene.leave()    
         }
     
-        if (!res || res <0){
-            throw("Can't create participant")
-        }
-
         if (!offer.is_sum()){
             var hello_message = await offer.get_hello_message()
             ctx.replyWithMarkdown(hello_message)
@@ -67,22 +63,18 @@ async function apply_dialog(ctx){
         ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
         return ctx.scene.leave()    
     }
-    return ctx.wizard.next()
 }
 
 async function select_slot(ctx){
 
     try {
-        var tgId = ctx.from.id;
         var offer = await db.Offer.get_offer(ctx.wizard.state.apply_offer_id)
-        var participant = await offer.get_participant(tgId)
 
-        var slot_selected = await offer.convert_callback_to_slot_value(ctx.update.callback_query.data)
-        await participant.set_slot(slot_selected)
+        ctx.wizard.state.slot_selected = await offer.convert_callback_to_slot_value(ctx.update.callback_query.data)
 
         var hello_message = await offer.get_hello_message()
         ctx.replyWithMarkdown(hello_message)
-        return ctx.wizard.selectStep(SUM_STEP)   //!! We don't need to ask for slot selection
+        return ctx.wizard.selectStep(SUM_STEP)   //!! NTR: if we use next() here - select_slot called again
     }catch(error){
         logger.error("FAILED: offer_apply.select_slot %s", error)
         ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
@@ -96,11 +88,14 @@ async function get_input(ctx){
     try {
         var tgId = ctx.from.id;
         var offer = await db.Offer.get_offer(ctx.wizard.state.apply_offer_id)
-        var participant = await offer.get_participant(tgId)
 
+        ctx.wizard.state.hello_input = ctx.message.text;
+     
+        var added = await offer.add_participant(tgId, ctx.wizard.state)
 
-        var hello_input = ctx.message.text;
-        await participant.save_hello_input(hello_input)
+        if (added <= 0){
+            throw("Can't add participant")
+        }
 
         ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_activated'))
         return ctx.scene.leave()

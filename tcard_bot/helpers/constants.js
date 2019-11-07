@@ -72,6 +72,7 @@ const OFFER_STATUS = {
     active : 1,
     paused : 2,
     finished : 3,
+    updated : 4
 }
 
 

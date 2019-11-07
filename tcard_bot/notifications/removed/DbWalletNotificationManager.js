@@ -203,11 +203,18 @@ class DbWalletNotificationManager{
 
 let db_notifcation_manager = undefined;
 async function init() {
-    if (!db_notifcation_manager){
-        db_notifcation_manager = new DbWalletNotificationManager();
+    try{
+        if (!db_notifcation_manager){
+            db_notifcation_manager = new DbWalletNotificationManager();
+        }
+
+        await db_notifcation_manager.init()
+    }catch(error){
+        logger.error("FAILED: DBWalletNotificationManager.init error: %s", error);
+        return;
     }
 
-    await db_notifcation_manager.init()
+    logger.info("SUCCESS: DBWalletNotificationManager.init success");
 }
     
 
