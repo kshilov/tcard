@@ -79,6 +79,11 @@ apply_offer_hello_message: |
 
   ${hello}
 
+apply_offer_success_message: |
+  Группа набрана
+
+  ${message}
+
 apply_offer_activated: |
   Спасибо за отклик, заявка принята - как только набор группы завершится придет уведомление.
 
@@ -155,3 +160,10 @@ offer_messages_preview_template: |
 
   *Сообщение после того, как пользователь совершил оплату:*
   ${messagePaid}
+
+
+manual_update_offer_select : |
+  *Список доступных офферов:*
+  ${offer_list}
+
+  Введите ID оффера для обновления.

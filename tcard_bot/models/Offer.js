@@ -83,6 +83,30 @@ module.exports = function(sequelize, DataTypes) {
 		return offer;
 	}
 
+	Offer.status_update = async function(){
+		var data = {}
+
+		var offers = await db.Offer.findAll({
+			attributes: ['id'], 
+			raw: true,
+			where : {
+				status : {
+					[db.Sequelize.Op.in] : [OFFER_STATUS.updated, OFFER_STATUS.finished]
+				}
+			}
+		})
+
+		var arr = []
+        offers.forEach(element => {
+            arr.push(element.id)
+        });
+		if(arr.length > 0){
+			data['offer_list'] = arr;
+		}
+		return data;
+
+	}
+
 	Offer.offers_for = async function(user_tg_id){
 		var current_user = await db.User.get_user(user_tg_id);
 		var data = {};
@@ -155,7 +179,8 @@ module.exports = function(sequelize, DataTypes) {
 	Offer.prototype.get_keyboard = async function(){
 		
 		var button_url = await this.get_url();
-        var kb = Markup.inlineKeyboard([Markup.urlButton(ctx.i18n.t('offer_button'), button_url)]);
+		var button_text = i18n.t(i18n.current_locale, 'offer_button')
+        var kb = Markup.inlineKeyboard([Markup.urlButton(button_text, button_url)]);
 
 		return kb;
 	}
@@ -258,6 +283,17 @@ module.exports = function(sequelize, DataTypes) {
 		return participant;
 	}
 
+	Offer.prototype.get_success_message = async function(){
+		var data = JSON.parse(this.data)
+
+		var success_message = data['messagePay']
+
+		var formated_message = await i18n.t(i18n.current_locale, 'apply_offer_success_message', {message : success_message})
+
+		return formated_message;
+	}
+
+
 	Offer.prototype.get_hello_message = async function(){
 		var data = JSON.parse(this.data)
 
@@ -322,22 +358,22 @@ module.exports = function(sequelize, DataTypes) {
 		current_postings.push({chat_id:chat_id, message_id:message_id})
 
 		this.published_to = JSON.stringify(current_postings)
-		this.save()
+		await this.save()
 	}
 
 	Offer.prototype.active = async function() {
 		this.status = OFFER_STATUS.active;
-		this.save()
+		await this.save()
 	}
 
 	Offer.prototype.finished = async function() {
 		this.status = OFFER_STATUS.finished;
-		this.save()
+		await this.save()
 	}
 
 	Offer.prototype.paused = async function() {
 		this.status = OFFER_STATUS.paused;
-		this.save()
+		await this.save()
 	}
 
 
@@ -349,13 +385,13 @@ module.exports = function(sequelize, DataTypes) {
 			this.current = this.current + slot_selected;
 		}
 
-		if (this.total >= this.current){
+		if (this.current >= this.total){
 			this.status = OFFER_STATUS.finished;
 		}else{
 			this.status = OFFER_STATUS.updated;
 		}
 
-		this.save()
+		await this.save()
 	}
 
 	Offer.prototype.get_publications = function(){
@@ -365,6 +401,16 @@ module.exports = function(sequelize, DataTypes) {
 		}
 
 		return current_postings;
+	}
+
+	Offer.prototype.get_participants = async function(){
+		var participants = await db.OfferParticipantsQueue.findAll({
+			where : {
+				OfferId : this.id
+			}
+		})
+
+		return participants;
 	}
 
 
