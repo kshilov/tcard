@@ -34,12 +34,7 @@ class OfferManager{
         
         this._handling = false;
 
-        logger.error("INIT!!!!!!!!!!!!!!!!!!!!!")
         this.db.Offer.afterSave(async offer => {
-            logger.error("afterSave");
-            logger.error(offer.id)
-            logger.error(offer.status)
-            
             await this._handle_update(offer)
         })
 
@@ -127,25 +122,31 @@ class OfferManager{
 
 
     async _update_offer_message(offer, is_kb){
-        var publications = offer.get_publications()
-        
-        var updated_message = await offer.get_message()
-        var kb = await offer.get_keyboard()
+            var publications = offer.get_publications()
+            
+            var updated_message = await offer.get_message()
+            var kb = await offer.get_keyboard()
 
-        Object.keys(publications).forEach(async function(key){
-            if (!key || !publications[key]){
-                return;
-            }
+            Object.keys(publications).forEach(async function(key){
+                if (!key || !publications[key]){
+                    return;
+                }
 
-            var chat_id = publications[key].chat_id
-            var message_id = publications[key].message_id
+                var chat_id = publications[key].chat_id
+                var message_id = publications[key].message_id
 
-            if (is_kb){
-                await bot.telegram.editMessageText(chat_id, message_id, 0, updated_message, extra.markup(kb).markdown())
-            }else{
-                await bot.telegram.editMessageText(chat_id, message_id, 0, updated_message, extra.markdown())
-            }
-        })
+                if (offer.type == OFFER_TYPE.button){
+
+                    var updated_kb = await offer.get_offer_button_updated_keyboard()
+                    await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, extra.markup(updated_kb).markdown())    
+                }else{
+                    if (is_kb){
+                        await bot.telegram.editMessageText(chat_id, message_id, 0, updated_message, extra.markup(kb).markdown())
+                    }else{
+                        await bot.telegram.editMessageText(chat_id, message_id, 0, updated_message, extra.markdown())
+                    }
+                }
+            })
     }
 
 

@@ -133,6 +133,34 @@ module.exports = function(sequelize, DataTypes) {
 		return data;
 	}
 
+	Offer.new_button_offer = async function(user_tg_id, data){
+		let offer;
+
+		try {
+			var current_user = await db.User.get_user(user_tg_id)
+			if (!current_user){
+				throw("There is no such user")
+			}
+
+			offer = await Offer.create(
+				{
+					type : OFFER_TYPE.button,
+					status: OFFER_STATUS.new,
+					current: 0,
+					total : data['amount'],
+					start_amount : 0,
+					UserId : current_user.id,
+					data : JSON.stringify(data)
+				}
+			)
+		}catch(error){
+			logger.error("Offer.new_button_offer: Can't create offer %s", error)
+			return -1;
+		}
+
+		return offer;
+	}
+
 	Offer.new_offer = async function(user_tg_id, data){
 		let offer;
 
@@ -166,6 +194,44 @@ module.exports = function(sequelize, DataTypes) {
 
 		return offer;
 	}
+
+	Offer.prototype.get_message_source = async function(){
+		var data = await this.get_data()
+
+		var message_source = data['offerMessageLink']
+		var parts = message_source.split('/')
+
+		var chat_id = parts[4]
+		var message_id = parts[5]
+		
+		return {
+			chat_id: chat_id, 
+			message_id: message_id
+		}
+
+	}
+
+	Offer.prototype.get_offer_button_keyboard = async function(){	
+		var button_url = await this.get_url();
+
+		var button_text = i18n.t(i18n.current_locale, 'offer_button_init')
+        var kb = Markup.inlineKeyboard([Markup.urlButton(button_text, button_url)]);
+
+		return kb;
+	}
+
+	Offer.prototype.get_offer_button_updated_keyboard = async function(){
+		var button_url = await this.get_url();
+
+		var percent = Math.floor((this.current / this.total) * 100);
+
+		var button_text = i18n.t(i18n.current_locale, 'offer_button_updated', {percent:percent})
+        var kb = Markup.inlineKeyboard([Markup.urlButton(button_text, button_url)]);
+
+		return kb;
+
+	}
+
 
 	Offer.prototype.get_data = async function(){
         return await JSON.parse(this.data);

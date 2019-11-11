@@ -26,3 +26,8 @@ https://khashtamov.com/en/how-to-deploy-telegram-bot-django/ - about certificate
 
 openssl req -newkey rsa:2048 -sha256 -nodes -keyout YOURPRIVATE.key -x509 -days 365 -out YOURPUBLIC.pem -subj "/C=US/ST=New York/L=Brooklyn/O=Example Brooklyn Company/CN=adyellow.com"
 
+journalctl -u prod-droplet -e
+
+systemctl restart prod-droplet
+
+systemctl daemon-reload

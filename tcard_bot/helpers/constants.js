@@ -59,6 +59,7 @@ const WALLET_ERROR_CODES = {
 const OFFER_TYPE = {
     num : 1,
     sum : 2,
+    button : 3,
     unknown : 0
 }
 
