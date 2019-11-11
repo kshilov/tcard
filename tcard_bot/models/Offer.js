@@ -107,6 +107,34 @@ module.exports = function(sequelize, DataTypes) {
 
 	}
 
+	Offer.button_offers_for = async function(user_tg_id){
+		var current_user = await db.User.get_user(user_tg_id);
+		var data = {};
+
+		if (!current_user){
+			return data;
+		}
+
+		var offers = await db.Offer.findAll({
+			attributes: ['id'], 
+			raw: true,
+			where : {
+				UserId : current_user.id,
+				type: OFFER_TYPE.button
+			}
+		})
+
+		var arr = []
+        offers.forEach(element => {
+            arr.push(element.id)
+        });
+		if(arr.length > 0){
+			data['offer_list'] = arr;
+		}
+		return data;
+
+	}
+	
 	Offer.offers_for = async function(user_tg_id){
 		var current_user = await db.User.get_user(user_tg_id);
 		var data = {};
@@ -201,7 +229,7 @@ module.exports = function(sequelize, DataTypes) {
 		var message_source = data['offerMessageLink']
 		var parts = message_source.split('/')
 
-		var chat_id = parts[4]
+		var chat_id = '-100' + parts[4]
 		var message_id = parts[5]
 		
 		return {
@@ -336,7 +364,7 @@ module.exports = function(sequelize, DataTypes) {
 					tgId : tgId,
 					OfferId: this.id,
 					slot_selected : slot_selected,
-					hello_input : data['hello_input']
+					hello_input : JSON.stringify(data)
 				}
 			)
 			

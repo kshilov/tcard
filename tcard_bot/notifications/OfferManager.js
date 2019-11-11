@@ -138,7 +138,7 @@ class OfferManager{
                 if (offer.type == OFFER_TYPE.button){
 
                     var updated_kb = await offer.get_offer_button_updated_keyboard()
-                    await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, extra.markup(updated_kb).markdown())    
+                    await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, updated_kb, extra.markup(updated_kb).markdown())
                 }else{
                     if (is_kb){
                         await bot.telegram.editMessageText(chat_id, message_id, 0, updated_message, extra.markup(kb).markdown())

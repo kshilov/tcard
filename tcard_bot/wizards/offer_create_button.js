@@ -84,6 +84,9 @@ async function step_ask_preview(ctx){
 
 async function step_show_preview(ctx){
     var data = ctx.wizard.state;
+   
+    logger.error(data)
+
     var message = await i18n.t(i18n.current_locale, 'offer_button_post_template', data)
 
     ctx.replyWithMarkdown(message, 

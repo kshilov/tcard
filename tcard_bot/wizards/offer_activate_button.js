@@ -75,8 +75,12 @@ async function step_final(ctx){
                 
                 var chat_id = message_data.chat_id;
                 var message_id = message_data.message_id;
+                
+                logger.error("chat_id:%s message_id:%s", chat_id, message_id)
 
-                var published = await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, extra.markup(offer_button).markdown())
+                var published = await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, offer_button, extra.markup(offer_button).markdown())
+
+                logger.error(published)
 
                 if (!published){
                     throw("offer_activate_button: leave_scene failed to published")
