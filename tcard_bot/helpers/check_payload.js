@@ -5,7 +5,7 @@ const {APPLY_BUTTON_PREFIX} = require("../helpers/constants");
 
 
 async function offer_apply(ctx){
-    return ctx.scene.enter('apply-offer-wizard')
+    return ctx.scene.enter('apply-dialog-offer-wizard')
 }
 
 module.exports = async function check_payload(ctx, data){

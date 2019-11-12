@@ -54,10 +54,17 @@ async function step_1(ctx){
 async function step_2(ctx){
     ctx.wizard.state.offerId = ctx.message.text;
     
+    ctx.replyWithMarkdown('Введите ссылку на сообщение, к которому необходимо добавить кнопку')
+    return ctx.wizard.next()
+}
+
+async function step_3(ctx){
+    ctx.wizard.state.messageLink = ctx.message.text;
+
     ctx.replyWithMarkdown('Готовы добавить кнопку к сообщению?', 
-        Markup.inlineKeyboard([
-            Markup.callbackButton(ctx.i18n.t('yes'), 'offer_activate_approve'),
-            Markup.callbackButton(ctx.i18n.t('no'), 'offer_activate_decline'),
+    Markup.inlineKeyboard([
+        Markup.callbackButton(ctx.i18n.t('yes'), 'offer_activate_approve'),
+        Markup.callbackButton(ctx.i18n.t('no'), 'offer_activate_decline'),
     ]).extra())
     return ctx.wizard.next()
 }
@@ -71,7 +78,7 @@ async function step_final(ctx){
         }else{
             try {
                 var offer_button = await offer.get_offer_button_keyboard()
-                var message_data = await offer.get_message_source() 
+                var message_data = await offer.get_message_source(ctx.wizard.state.messageLink) 
                 
                 var chat_id = message_data.chat_id;
                 var message_id = message_data.message_id;
@@ -79,8 +86,6 @@ async function step_final(ctx){
                 logger.error("chat_id:%s message_id:%s", chat_id, message_id)
 
                 var published = await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, offer_button, extra.markup(offer_button).markdown())
-
-                logger.error(published)
 
                 if (!published){
                     throw("offer_activate_button: leave_scene failed to published")
@@ -112,8 +117,8 @@ activate_steps.action('offer_activate_decline', step_final)
 const activate_button_offer_wizard = new WizardScene('activate-button-offer-wizard',
     activate_dialog,
     activate_steps,
-    step_1,
     step_2,
+    step_3,
     step_final
 )
 

@@ -32,10 +32,6 @@ async function setupStages(bot) {
     bot.use(session());
     bot.use(stage.middleware());
 
-    bot.command('test_wizard', async ctx => {
-      return ctx.scene.enter('test-wizard')
-    })
-
     bot.command('create_custom_dialog_offer', async ctx => {
       return ctx.scene.enter('create-custom-dialog-offer-wizard')
     })
@@ -45,14 +41,12 @@ async function setupStages(bot) {
     })
 
 
-
-
-    bot.command('create_button_offer', async ctx => {
-      return ctx.scene.enter('create-button-offer-wizard')
-    })
-
     bot.command('activate_button_offer', async ctx => {
       return ctx.scene.enter('activate-button-offer-wizard')
+    })
+
+    bot.command('manual_update_offer', async ctx => {
+      return ctx.scene.enter('update-manual-offer-wizard')
     })
 
     

@@ -229,14 +229,21 @@ module.exports = function(sequelize, DataTypes) {
 		return data['questions_list']
 	}
 
-	Offer.prototype.get_message_source = async function(){
-		var data = await this.get_data()
+	Offer.prototype.get_message_source = async function(post_link){
 
-		var message_source = data['offerMessageLink']
-		var parts = message_source.split('/')
+		var parts = post_link.split('/')
 
-		var chat_id = '-100' + parts[4]
-		var message_id = parts[5]
+		// for public channel: [ 'https:', '', 't.me', 'hahachannelhaha', '3' ]
+		// for private channel: [ 'https:', '', 't.me', 'c', '1469805587', '2' ]
+		
+		var chat_id = '@' + parts[3] // assume public by default
+		var message_id = parts[4]
+
+		if (parts[3] == 'c'){ // if private channel
+			chat_id = '-100' + parts[4];
+			message_id = parts[5]
+		}
+		
 		
 		return {
 			chat_id: chat_id, 

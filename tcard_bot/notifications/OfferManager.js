@@ -31,6 +31,9 @@ class OfferManager{
         }else{
             this.init_called = true;
         }
+
+        logger.info("SUCCESS: OfferManager.init initialized success")
+
         
         this._handling = false;
 
@@ -124,9 +127,6 @@ class OfferManager{
     async _update_offer_message(offer, is_kb){
             var publications = offer.get_publications()
             
-            var updated_message = await offer.get_message()
-            var kb = await offer.get_keyboard()
-
             Object.keys(publications).forEach(async function(key){
                 if (!key || !publications[key]){
                     return;
@@ -135,17 +135,9 @@ class OfferManager{
                 var chat_id = publications[key].chat_id
                 var message_id = publications[key].message_id
 
-                if (offer.type == OFFER_TYPE.button){
+                var updated_kb = await offer.get_offer_button_updated_keyboard()
+                await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, updated_kb, extra.markup(updated_kb).markdown())
 
-                    var updated_kb = await offer.get_offer_button_updated_keyboard()
-                    await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, updated_kb, extra.markup(updated_kb).markdown())
-                }else{
-                    if (is_kb){
-                        await bot.telegram.editMessageText(chat_id, message_id, 0, updated_message, extra.markup(kb).markdown())
-                    }else{
-                        await bot.telegram.editMessageText(chat_id, message_id, 0, updated_message, extra.markdown())
-                    }
-                }
             })
     }
 
