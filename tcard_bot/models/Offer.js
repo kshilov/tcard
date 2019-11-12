@@ -223,6 +223,12 @@ module.exports = function(sequelize, DataTypes) {
 		return offer;
 	}
 
+	Offer.prototype.get_questions_list = async function(){
+		var data = await this.get_data()
+
+		return data['questions_list']
+	}
+
 	Offer.prototype.get_message_source = async function(){
 		var data = await this.get_data()
 
@@ -473,7 +479,7 @@ module.exports = function(sequelize, DataTypes) {
 
 
 	Offer.prototype.update = async function(slot_selected) {
-		if (this.type == OFFER_TYPE.num){
+		if (this.type == OFFER_TYPE.num || this.type == OFFER_TYPE.button){
 			this.current = this.current + 1;
 		}else{
 			this.current = Number(this.current) + Number(slot_selected);

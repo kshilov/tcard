@@ -8,6 +8,9 @@ const apply_offer_wizard = require('../wizards/offer_apply')
 const update_manual_offer_wizard = require('../wizards/offer_update_manual')
 const activate_button_offer_wizard = require('../wizards/offer_activate_button')
 const create_button_offer_wizard = require('../wizards/offer_create_button')
+const create_custom_dialog_offer_wizard = require('../wizards/offer_create_custom_dialog')
+const apply_offer_custom_dialog_wizard = require('../wizards/offer_apply_custom_steps')
+
 const test_wizard = require('../wizards/test_wizard')
 
 const logger = require('../helpers/logger')
@@ -19,7 +22,9 @@ const stage = new Stage([create_offer_wizard,
   update_manual_offer_wizard,
   activate_button_offer_wizard,
   create_button_offer_wizard,
-  test_wizard])
+  test_wizard,
+  create_custom_dialog_offer_wizard,
+  apply_offer_custom_dialog_wizard])
 
 
 async function setupStages(bot) {
@@ -30,6 +35,16 @@ async function setupStages(bot) {
     bot.command('test_wizard', async ctx => {
       return ctx.scene.enter('test-wizard')
     })
+
+    bot.command('create_custom_dialog_offer', async ctx => {
+      return ctx.scene.enter('create-custom-dialog-offer-wizard')
+    })
+
+    bot.command('apply_dialog_offer', async ctx => {
+      return ctx.scene.enter('apply-dialog-offer-wizard')
+    })
+
+
 
 
     bot.command('create_button_offer', async ctx => {
