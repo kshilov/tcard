@@ -14,15 +14,14 @@ const bot = providers.bot.bot
 
 const {OFFER_TYPE, OFFER_STATUS, OFFER_CODES} = require("../helpers/constants");
 
-const SUM_STEP = 3;
-const BUTTON_OFFER_STEP = 4;
+const FINISHED_ANSWER_STEP = 3;
 
 const apply_steps = new Composer()
 
 async function apply_dialog(ctx){
 
     if (!ctx.state.apply_offer_id){
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
+        ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_error_id'))
         return ctx.scene.leave()    
     }
 
@@ -30,12 +29,12 @@ async function apply_dialog(ctx){
 
     var offer = await db.Offer.get_offer(ctx.wizard.state.apply_offer_id)
     if (!offer){
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
+        ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_error_offer'))
         return ctx.scene.leave()
     }
 
     if(offer.is_finished()){
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_finished'))
+        ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_finished'))
         return ctx.scene.leave()
     }
 
@@ -43,147 +42,170 @@ async function apply_dialog(ctx){
         var tgId = ctx.from.id;
         var exist = await offer.get_participant(tgId)
         if (exist){
-            ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_apply_exist'))
+            ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_exist'))
             return ctx.scene.leave()    
         }
     
-
-        if (offer.type == OFFER_TYPE.button){
-            ctx.replyWithMarkdown(ctx.i18n.t('offer_button_product_info'))
-            return ctx.wizard.selectStep(BUTTON_OFFER_STEP)   //!! We don't need to ask for slot selection
-        }else{
-            //DEPRECATED: need to remove it in the near time
-                if (!offer.is_sum()){
-                    var hello_message = await offer.get_hello_message()
-                    ctx.replyWithMarkdown(hello_message)
-                    return ctx.wizard.selectStep(SUM_STEP)   //!! We don't need to ask for slot selection
-                }else{
-                    var values = await offer.get_slot_message()
-                    var slot_message = values.message;
-                    var keyboard = values.keyboard;
-                    
-                    ctx.replyWithMarkdown(slot_message, extra.markup(keyboard).markdown())
-                    return ctx.wizard.next()
-                }
-        }
-
+        ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_dialog'), Markup.inlineKeyboard([
+            Markup.callbackButton('➡️ Начать', 'start_answer')
+        ]).extra())
+        return ctx.wizard.next()
+    
     }catch(error){
-        logger.error("FAILED: offer_apply.apply_dialog %s", error)
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
+        logger.error("FAILED: apply_offer_custom_dialog_wizard.apply_dialog %s", error)
+        ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_error_unknown'))
         return ctx.scene.leave()    
     }
 }
 
-async function select_slot(ctx){
+async function start_answer(ctx){
+    var offer_id = ctx.wizard.state.apply_offer_id;
+    var offer = await db.Offer.get_offer(offer_id)
+    
+    ctx.wizard.state.questions_list = await offer.get_questions_list()
 
-    try {
-        var offer = await db.Offer.get_offer(ctx.wizard.state.apply_offer_id)
+    if (!ctx.wizard.state.questions_list){
+        ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_error_no_questions'))
+        return ctx.scene.leave()  
+    }
 
-        ctx.wizard.state.slot_selected = await offer.convert_callback_to_slot_value(ctx.update.callback_query.data)
+    var question = ctx.wizard.state.questions_list.shift()
+    ctx.wizard.state.answers_list = []
 
-        var hello_message = await offer.get_hello_message()
-        ctx.replyWithMarkdown(hello_message)
-        return ctx.wizard.selectStep(SUM_STEP)   //!! NTR: if we use next() here - select_slot called again
-    }catch(error){
-        logger.error("FAILED: offer_apply.select_slot %s", error)
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
-        return ctx.scene.leave()
+    ctx.replyWithMarkdown(question)
+    return ctx.wizard.next()
+}
+
+async function progress_answer(ctx) {
+
+    ctx.wizard.state.answers_list.push(ctx.message.text)
+
+    var next_question = ctx.wizard.state.questions_list.shift()
+
+    if (!next_question){
+        show_preview(ctx)
+        return ctx.wizard.next()
+    }else{
+        ctx.replyWithMarkdown(next_question)
+        return ctx.wizard.selectStep(ctx.wizard.cursor)
     }
 }
 
+async function finished_answer(ctx) {
+    
+    if (ctx.update.callback_query && ctx.update.callback_query.data == 'answers_edit'){
+        ctx.reply(ctx.i18n.t('offer_apply_questions_edit'));
+        return ctx.wizard.next()
+    }
 
-async function get_input(ctx){
+    return finished(ctx)
+}
+
+async function edit_answer(ctx){
+    ctx.wizard.state.edit_num = ctx.message.text;
+    ctx.wizard.state.edit_num = ctx.wizard.state.edit_num - 1;
+
+    var answer = ctx.wizard.state.answers_list[ctx.wizard.state.edit_num];
+
+    var message = answer + '\n\n'
+    message = message + 'заменить на - введите правильный вариант: \n\n';
+
+    ctx.reply(message);
+    return ctx.wizard.next()
+}
+
+async function apply_edit(ctx){
+    var new_varian = ctx.message.text;
+
+    ctx.wizard.state.answers_list[ctx.wizard.state.edit_num] = new_varian;
+    
+    show_preview(ctx)
+    return ctx.wizard.selectStep(FINISHED_ANSWER_STEP)
+}
+
+async function finished(ctx){
 
     try {
         var tgId = ctx.from.id;
         var offer = await db.Offer.get_offer(ctx.wizard.state.apply_offer_id)
 
-        ctx.wizard.state.hello_input = ctx.message.text;
-     
-        var added = await offer.add_participant(tgId, ctx.wizard.state)
+        var data = ctx.wizard.state;
+
+        await join_qa(offer, data)
+
+        var added = await offer.add_participant(tgId, data)
 
         if (added <= 0){
             throw("Can't add participant")
         }
 
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_activated'))
-        return ctx.scene.leave()
+        ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_activated'))
     }catch(error){
-        logger.error("FAILED: offer_apply.get_input %s", error)
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
-        return ctx.scene.leave()
+        logger.error("FAILED: apply_offer_custom_dialog_wizard.finished %s", error)
+        ctx.replyWithMarkdown(ctx.i18n.t('offer_apply_error_finished_unknown'))
     }
+
+    return ctx.scene.leave()
 }
 
-async function button_offer_step_1(ctx) {
-    ctx.wizard.state.order_comment = ctx.message.text;
-    
-    ctx.replyWithMarkdown(ctx.i18n.t('offer_button_user_info'))
-    return ctx.wizard.next()
+async function join_qa(offer, data){
+    var question_list = await offer.get_questions_list();
+    var answers_list = data.answers_list;
+
+    var i = 0;
+    var new_data = []
+    question_list.forEach(item => {
+        new_data.push(
+            {
+                question:item,
+                answer: answers_list[i]
+            }
+        )
+        i = i + 1;
+    })
+
+    data.answers_list = new_data;
+    return;
 }
 
-async function button_offer_step_2(ctx) {
-    ctx.wizard.state.user_info = ctx.message.text;
-    
-    ctx.replyWithMarkdown(ctx.i18n.t('offer_button_delivery_type'))
-    return ctx.wizard.next()
+/* this is not a step - it's a working function */
+function show_preview(ctx){
+    var message = 'Проверим ответы: \n'
 
-}
+    var i = 1;
+    ctx.wizard.state.answers_list.forEach(item => {
+        message = message + ' ' + i + '. ' + item + '\n';
+        i = i + 1;
+    })
+
+    ctx.replyWithMarkdown(message, 
+    Markup.inlineKeyboard([
+        Markup.callbackButton(ctx.i18n.t('offer_apply_edit'), 'answers_edit'),
+        Markup.callbackButton(ctx.i18n.t('offer_apply_approve'), 'answers_approve'),
+    ]).extra())
 
 
-async function button_offer_step_3(ctx) {
-    ctx.wizard.state.delivery_type = ctx.message.text;
-    
-    ctx.replyWithMarkdown(ctx.i18n.t('offer_button_delivery_address'))
-    return ctx.wizard.next()
-}
-
-async function button_offer_step_4(ctx) {
-
-    try {
-        var tgId = ctx.from.id;
-        var offer = await db.Offer.get_offer(ctx.wizard.state.apply_offer_id)
-
-        ctx.wizard.state.delivery_address = ctx.message.text;
-     
-        var added = await offer.add_participant(tgId, ctx.wizard.state)
-
-        if (added <= 0){
-            throw("Can't add participant")
-        }
-
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_activated'))
-        return ctx.scene.leave()
-    }catch(error){
-        logger.error("FAILED: offer_apply.button_offer_step_4 %s", error)
-        ctx.replyWithMarkdown(ctx.i18n.t('apply_offer_error'))
-        return ctx.scene.leave()
-    }
 }
 
 
 
-apply_steps.action('value-0', select_slot)
-apply_steps.action('value-1', select_slot)
-apply_steps.action('value-2', select_slot)
-apply_steps.action('value-3', select_slot)
-apply_steps.action('value-4', select_slot)
+apply_steps.action('start_answer', start_answer)
+
+apply_steps.action('answers_edit', finished_answer)
+apply_steps.action('answers_approve', finished_answer)
 
 
-const apply_offer_wizard = new WizardScene('apply-offer-wizard',
+
+const offer_apply_wizard = new WizardScene('offer-apply-wizard',
     apply_dialog,
     apply_steps,
-    select_slot,
-    get_input,
-
-    button_offer_step_1,
-    button_offer_step_2,
-    button_offer_step_3,
-    button_offer_step_4
-
+    progress_answer,
+    finished_answer,
+    edit_answer,
+    apply_edit
 )
 
-logger.info("SUCCESS wizards: offer_apply initialized");
+logger.info("SUCCESS wizards: offer_apply_wizard initialized");
 
 
-module.exports = apply_offer_wizard;
+module.exports = offer_apply_wizard;

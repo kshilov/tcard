@@ -18,16 +18,17 @@ async function init(bot) {
         }
 
         var payload_handle = await check_payload(ctx, ctx.startPayload)
+
+        if (ctx.state.ref){
+            await user.add_ref(ctx.state.ref)
+        }
+
         if (payload_handle){
             return payload_handle(ctx)
         }
 
         return sendStart(ctx);
     })
-}
-
-async function suggestWalletCreation(ctx){
-    await ctx.replyWithMarkdown(ctx.i18n.t('create_wallet'));
 }
 
   // Exports

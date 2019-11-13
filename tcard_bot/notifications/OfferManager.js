@@ -134,8 +134,9 @@ class OfferManager{
 
                 var chat_id = publications[key].chat_id
                 var message_id = publications[key].message_id
+                var ref = publications[key].ref
 
-                var updated_kb = await offer.get_offer_button_updated_keyboard()
+                var updated_kb = await offer.get_button(updated=true, ref=ref)
                 await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, updated_kb, extra.markup(updated_kb).markdown())
 
             })
@@ -160,8 +161,6 @@ async function init() {
     }
 
     await offer_manager.init()
-
-    logger.info("SUCCESS: OfferManager.init success")
 
     return offer_manager;
 }

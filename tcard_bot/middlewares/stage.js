@@ -2,29 +2,20 @@
 
 const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
-const create_offer_wizard = require('../wizards/offer_create')
-const activate_offer_wizard = require('../wizards/offer_activate')
-const apply_offer_wizard = require('../wizards/offer_apply')
-const update_manual_offer_wizard = require('../wizards/offer_update_manual')
-const activate_button_offer_wizard = require('../wizards/offer_activate_button')
-const create_button_offer_wizard = require('../wizards/offer_create_button')
-const create_custom_dialog_offer_wizard = require('../wizards/offer_create_custom_dialog')
-const apply_offer_custom_dialog_wizard = require('../wizards/offer_apply_custom_steps')
-
-const test_wizard = require('../wizards/test_wizard')
-
 const logger = require('../helpers/logger')
 
+const offer_create_wizard = require('../wizards/offer_create')
+const offer_activate_wizard = require('../wizards/offer_activate')
+const offer_update_wizard = require('../wizards/offer_update')
 
-const stage = new Stage([create_offer_wizard,
-  activate_offer_wizard,
-  apply_offer_wizard,
-  update_manual_offer_wizard,
-  activate_button_offer_wizard,
-  create_button_offer_wizard,
-  test_wizard,
-  create_custom_dialog_offer_wizard,
-  apply_offer_custom_dialog_wizard])
+
+
+
+const stage = new Stage([
+  offer_create_wizard,
+  offer_activate_wizard,
+  offer_update_wizard
+])
 
 
 async function setupStages(bot) {
@@ -32,38 +23,18 @@ async function setupStages(bot) {
     bot.use(session());
     bot.use(stage.middleware());
 
-    bot.command('create_custom_dialog_offer', async ctx => {
-      return ctx.scene.enter('create-custom-dialog-offer-wizard')
+    bot.command('offer_create', async ctx => {
+      return ctx.scene.enter('offer-create-wizard')
     })
 
-    bot.command('apply_dialog_offer', async ctx => {
-      return ctx.scene.enter('apply-dialog-offer-wizard')
+    bot.command('offer_activate', async ctx => {
+      return ctx.scene.enter('offer-activate-wizard')
     })
 
 
-    bot.command('activate_button_offer', async ctx => {
-      return ctx.scene.enter('activate-button-offer-wizard')
+    bot.command('offer_update', async ctx => {
+      return ctx.scene.enter('offer-update-wizard')
     })
-
-    bot.command('manual_update_offer', async ctx => {
-      return ctx.scene.enter('update-manual-offer-wizard')
-    })
-
-    
-    /*
-    bot.command('create_offer', async ctx => {
-      return ctx.scene.enter('create-offer-wizard')
-    })
-
-    bot.command('activate_offer', async ctx => {
-      return ctx.scene.enter('activate-offer-wizard')
-    })
-
-    bot.command('manual_update_offer', async ctx => {
-      return ctx.scene.enter('update-manual-offer-wizard')
-    })
-*/
-
 
   }catch(error){
     logger.error("FAILED: bot middleware stages setup failed: %s", error);

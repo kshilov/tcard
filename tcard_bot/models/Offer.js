@@ -50,6 +50,10 @@ module.exports = function(sequelize, DataTypes) {
             type: DataTypes.STRING,
 			allowNull: true,
 		},
+		bot_name : {
+            type: DataTypes.STRING,
+			allowNull: true,
+		},
 		due_date : {
 			type: DataTypes.DATE,
 			allowNull: true
@@ -83,7 +87,7 @@ module.exports = function(sequelize, DataTypes) {
 		return offer;
 	}
 
-	Offer.status_update = async function(){
+	Offer.status_update = async function(user_id){
 		var data = {}
 
 		var offers = await db.Offer.findAll({
@@ -92,7 +96,8 @@ module.exports = function(sequelize, DataTypes) {
 			where : {
 				status : {
 					[db.Sequelize.Op.in] : [OFFER_STATUS.updated, OFFER_STATUS.finished]
-				}
+				},
+				UserId : user_id
 			}
 		})
 
@@ -107,7 +112,7 @@ module.exports = function(sequelize, DataTypes) {
 
 	}
 
-	Offer.button_offers_for = async function(user_tg_id){
+	Offer.offers_for = async function(user_tg_id){
 		var current_user = await db.User.get_user(user_tg_id);
 		var data = {};
 
@@ -135,33 +140,7 @@ module.exports = function(sequelize, DataTypes) {
 
 	}
 	
-	Offer.offers_for = async function(user_tg_id){
-		var current_user = await db.User.get_user(user_tg_id);
-		var data = {};
-
-		if (!current_user){
-			return data;
-		}
-
-		var offers = await db.Offer.findAll({
-			attributes: ['id'], 
-			raw: true,
-			where : {
-				UserId : current_user.id
-			}
-		})
-
-		var arr = []
-        offers.forEach(element => {
-            arr.push(element.id)
-        });
-		if(arr.length > 0){
-			data['offer_list'] = arr;
-		}
-		return data;
-	}
-
-	Offer.new_button_offer = async function(user_tg_id, data){
+	Offer.new_offer = async function(user_tg_id, data){
 		let offer;
 
 		try {
@@ -182,46 +161,13 @@ module.exports = function(sequelize, DataTypes) {
 				}
 			)
 		}catch(error){
-			logger.error("Offer.new_button_offer: Can't create offer %s", error)
-			return -1;
-		}
-
-		return offer;
-	}
-
-	Offer.new_offer = async function(user_tg_id, data){
-		let offer;
-
-		try {
-			var current_user = await db.User.get_user(user_tg_id)
-			if (!current_user){
-				throw("There is no such user")
-			}
-
-			var offer_type = OFFER_TYPE.num
-			if (data['offerType'] == 'enter_sum_4'){
-				offer_type = OFFER_TYPE.sum
-			}
-
-			offer = await Offer.create(
-				{
-					type : offer_type,
-					status: OFFER_STATUS.new,
-					current: data['startAmount'],
-					total : data['amount'],
-					start_amount : data['startAmount'],
-					due_date : data['dueDate'],
-					UserId : current_user.id,
-					data : JSON.stringify(data)
-				}
-			)
-		}catch(error){
 			logger.error("Offer.new_offer: Can't create offer %s", error)
 			return -1;
 		}
 
 		return offer;
 	}
+
 
 	Offer.prototype.get_questions_list = async function(){
 		var data = await this.get_data()
@@ -252,22 +198,20 @@ module.exports = function(sequelize, DataTypes) {
 
 	}
 
-	Offer.prototype.get_offer_button_keyboard = async function(){	
-		var button_url = await this.get_url();
+	Offer.prototype.get_button = async function(updated=false, ref=undefined){
+		var button_url = await this.get_url(ref);
 
-		var button_text = i18n.t(i18n.current_locale, 'offer_button_init')
-        var kb = Markup.inlineKeyboard([Markup.urlButton(button_text, button_url)]);
+		var kb = undefined;
+		var button_text = '';
+		if (updated){
+			var percent = Math.floor((this.current / this.total) * 100);
 
-		return kb;
-	}
-
-	Offer.prototype.get_offer_button_updated_keyboard = async function(){
-		var button_url = await this.get_url();
-
-		var percent = Math.floor((this.current / this.total) * 100);
-
-		var button_text = i18n.t(i18n.current_locale, 'offer_button_updated', {percent:percent})
-        var kb = Markup.inlineKeyboard([Markup.urlButton(button_text, button_url)]);
+			button_text = i18n.t(i18n.current_locale, 'offer_button_updated', {percent:percent})
+			kb = Markup.inlineKeyboard([Markup.urlButton(button_text, button_url)]);
+		}else{
+			button_text = i18n.t(i18n.current_locale, 'offer_button_init')
+			kb = Markup.inlineKeyboard([Markup.urlButton(button_text, button_url)]);
+		}
 
 		return kb;
 
@@ -283,39 +227,11 @@ module.exports = function(sequelize, DataTypes) {
 		this.save()
 	}
 	
-	Offer.prototype.get_keyboard = async function(){
-		
-		var button_url = await this.get_url();
-		var button_text = i18n.t(i18n.current_locale, 'offer_button')
-        var kb = Markup.inlineKeyboard([Markup.urlButton(button_text, button_url)]);
-
-		return kb;
-	}
-
-	Offer.prototype.get_message = async function(){
-		var data = await this.get_data()
-		data['current'] = this.current;
-
-		var message = await i18n.t(i18n.current_locale, 'offer_num_post_template', data)
-		if (this.type == OFFER_TYPE.sum){
-			message = await i18n.t(i18n.current_locale, 'offer_sum_post_template', data)
-		}
-
-		return message;
-	}
-
-
-	Offer.prototype.edit_offer = async function(data){
-		if (this.status == OFFER_STATUS['finished']){
-			return;
-		}
-
-		this.total = data['amount'];
-		this.start_amount = data['startAmount'];
-		this.due_date = data['dueDate'];
-		this.data = JSON.stringify(data)
-
+	Offer.prototype.set_bot = async function(bot_name){
+		this.bot_name = bot_name;
 		this.save()
+
+		await this.set_url(this.bot_name)
 	}
 
 	Offer.prototype.set_url = async function(bot_name){
@@ -327,8 +243,12 @@ module.exports = function(sequelize, DataTypes) {
 		return url;
 	}
 
-	Offer.prototype.get_url = async function(){
-		return this.url;
+	Offer.prototype.get_url = async function(ref=undefined){
+		if (!ref){
+			return this.url;
+		}else{
+			return this.url + '-' + ref;
+		}
 	}
 
 	Offer.prototype.is_sum = function(){
@@ -455,6 +375,11 @@ module.exports = function(sequelize, DataTypes) {
 		
 	}
 
+	Offer.prototype.generate_ref = function(chat_id, message_id){
+		var ref = '_c_' + chat_id + '_m_' + message_id;
+
+		return ref;
+	}
 
 	Offer.prototype.published = async function(chat_id, message_id) {
 		var current_postings = JSON.parse(this.published_to);
@@ -462,7 +387,8 @@ module.exports = function(sequelize, DataTypes) {
 			current_postings = []
 		}
 
-		current_postings.push({chat_id:chat_id, message_id:message_id})
+		var ref = this.generate_ref(chat_id, message_id)
+		current_postings.push({chat_id:chat_id, message_id:message_id, ref:ref})
 
 		this.published_to = JSON.stringify(current_postings)
 		await this.save()

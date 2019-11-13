@@ -1,6 +1,6 @@
 'use strict';
 const logger = require('../helpers/logger')
-
+const {USER_ROLE} = require("../helpers/constants");
 var db = null;
 
 module.exports = function(sequelize, DataTypes) {
@@ -10,6 +10,11 @@ module.exports = function(sequelize, DataTypes) {
 			allowNull: false,
 			primaryKey: true,
 			autoIncrement: true
+		},
+		role: {
+            type: DataTypes.INTEGER,
+			allowNull: true,
+			defaultValue: 0
 		},
 		username: {
 			type: DataTypes.STRING,
@@ -42,6 +47,10 @@ module.exports = function(sequelize, DataTypes) {
 		aff_channel_url : {
 			type: DataTypes.STRING,
 			allowNull: true	
+		},
+		referrals : {
+			type: DataTypes.STRING,
+			allowNull: true
 		}
 	}, {
 		timestamps: true,
@@ -97,6 +106,40 @@ All methods start here
 		return user;
 	}
 
+	User.prototype.set_role = async function(role){
+		this.role = role;
+		this.save()
+	}
+
+	User.prototype.offer_access = function(){
+		
+		if (this.role >= USER_ROLE.channel_owner){
+			return true;
+		}
+
+		return false;
+	}
+
+	User.prototype.is_channel_admin = function(telgeram_chat_memmber_data){
+		
+		if (telgeram_chat_memmber_data == 'creator' || telgeram_chat_memmber_data == 'administrator'){
+			return true;
+		}
+
+		return false;
+	}
+
+	User.prototype.is_admin = function(){
+		if (this.role == USER_ROLE.admin){
+			return true;
+		}
+
+		return false;
+	}
+	User.prototype.add_ref = async function(ref){
+		this.referrals = this.referrals + ref + '|';
+		this.save()
+	}
 
 	User.prototype.get_wallet = async function () {
 

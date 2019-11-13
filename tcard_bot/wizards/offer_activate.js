@@ -1,9 +1,7 @@
 const Composer = require('telegraf/composer')
 const Markup = require('telegraf/markup')
 const WizardScene = require('telegraf/scenes/wizard')
-
 const extra = require('telegraf/extra')
-
 
 const logger = require('../helpers/logger')
 const {i18n} = require('../middlewares/i18n')
@@ -17,21 +15,22 @@ const activate_steps = new Composer()
 
 async function activate_dialog(ctx){
     // TODO: remove this on production
-    var admin_id = ctx.from.id;
-    if (admin_id != '389959952'){
-        var m = "HACKED ATTEMPT: someone try to use activate_dialog " + admin_id
+    var user = await db.User.get_user(ctx.from.id)
+
+    if (!user.offer_access()){
+        var m = "HACKED ATTEMPT: someone try to use activate_dialog offer_activate_button" + user.id
         logger.error(m)
         return ctx.scene.leave()
     }
     
-    ctx.replyWithMarkdown(ctx.i18n.t('activate_offer_dialog') , 
+    ctx.replyWithMarkdown(ctx.i18n.t('offer_activate_dialog') , 
     Markup.inlineKeyboard([
-        Markup.callbackButton('➡️ Start', 'activate_start')
+        Markup.callbackButton('➡️ Начать', 'step_1')
     ]).extra())
     return ctx.wizard.next()
 }
 
-async function activate_start(ctx){
+async function step_1(ctx){
     const telegram_id = ctx.from.id;
 
     var data = await db.Offer.offers_for(telegram_id)
@@ -39,10 +38,10 @@ async function activate_start(ctx){
     var message = '';
 
     if (Object.keys(data).length === 0){
-        message = await i18n.t(i18n.current_locale, 'activate_offer_select', {offer_list: 'There is no offers'});
+        message = await i18n.t(i18n.current_locale, 'offer_activate_select', {offer_list: 'Офферов не найдено'});
         exit = true;
     }else{
-        message = await i18n.t(i18n.current_locale, 'activate_offer_select', data);
+        message = await i18n.t(i18n.current_locale, 'offer_activate_select', data);
     }
 
     ctx.replyWithMarkdown(message)
@@ -53,81 +52,89 @@ async function activate_start(ctx){
     return ctx.wizard.next()
 }
 
-async function id_selected(ctx){
+async function step_2(ctx){
     ctx.wizard.state.offerId = ctx.message.text;
     
-    ctx.reply(ctx.i18n.t('activate_offer_channel_select'));
+    ctx.replyWithMarkdown(ctx.i18n.t('offer_activate_message_link'))
     return ctx.wizard.next()
 }
 
-async function channel_selected(ctx){
-    ctx.wizard.state.offerChannel = ctx.message.text;
-    
-    ctx.replyWithMarkdown('Ready to publish?', 
-        Markup.inlineKeyboard([
-            Markup.callbackButton(ctx.i18n.t('yes'), 'offer_activate_approve'),
-            Markup.callbackButton(ctx.i18n.t('no'), 'offer_activate_decline'),
+async function step_3(ctx){
+    ctx.wizard.state.messageLink = ctx.message.text;
+
+    ctx.replyWithMarkdown(ctx.i18n.t('offer_activate_approve_reuqest'), 
+    Markup.inlineKeyboard([
+        Markup.callbackButton(ctx.i18n.t('yes'), 'offer_activate_approve'),
+        Markup.callbackButton(ctx.i18n.t('no'), 'offer_activate_decline'),
     ]).extra())
-    
     return ctx.wizard.next()
 }
 
-async function leave_scene(ctx){
+async function step_final(ctx){
     if (ctx.update.callback_query.data == 'offer_activate_approve'){
         var offer_id = ctx.wizard.state.offerId;
         var offer = await db.Offer.get_offer(offer_id);
         if (!offer){
-            ctx.reply('Оффер не найден')
+            ctx.reply(ctx.i18n.t('offer_activate_not_found'))
         }else{
             try {
-                var channel_name = ctx.wizard.state.offerChannel;
 
-                var message = await offer.get_message()
+                var current_user = await db.User.get_user(ctx.from.id);
 
-                var button_url = await offer.get_url()
+                var chat_id = message_data.chat_id;
+                var message_id = message_data.message_id;
 
-                var kb = Markup.inlineKeyboard([Markup.urlButton(ctx.i18n.t('offer_button'), button_url)])
-                var published = await bot.telegram.sendMessage(channel_name, message, extra.markup(kb).markdown())
+                var ref = offer.generate_ref(chat_id, message_id)
+
+                var offer_button = await offer.get_button(updated=false, ref=ref)
+                var message_data = await offer.get_message_source(ctx.wizard.state.messageLink) 
+                
+                if (!current_user.is_admin()){
+                    var is_owner = await bot.telegram.getChatMember(chat_id, ctx.from.id);
+                    if (!user.is_channel_admin(is_owner.status)){
+                        ctx.replyWithMarkdown(ctx.i18n.t('offer_activate_not_channel_owner'))
+                        return ctx.scene.leave() 
+                    }
+                }
+                
+                var published = await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, offer_button, extra.markup(offer_button).markdown())
 
                 if (!published){
-                    throw("offer_active:leave_scene failed to published")
+                    throw("offer_activate_button: leave_scene failed to published")
                 }
 
-                var message_id = published.message_id;
-                var chat_id = published.chat.id;
-                
                 await offer.published(chat_id, message_id)
-
+                
                 await offer.activate()
 
-                ctx.reply(`Оффер успешно опубликован chat_id:${chat_id} message_id:${message_id}`)
+                ctx.reply(`Оффер успешно активировн chat_id:${chat_id} message_id:${message_id}`)
             }catch(error){
-                logger.error("FAILED: offer_activate leave_scene %s", error)
+                logger.error("FAILED: offer_activate_button leave_scene %s", error)
                 ctx.reply('Не получается опубликовать оффер')
             }
         }
     } else{
-        ctx.reply('Чтобы начать сначала введите /activate_offer')
+        ctx.reply(ctx.i18n.t('decline_action'))
     }
     return ctx.scene.leave()
 }
 
 
-activate_steps.action('activate_start', activate_start)
+activate_steps.action('step_1', step_1)
 
-activate_steps.action('offer_activate_approve', leave_scene)
-activate_steps.action('offer_activate_decline', leave_scene)
+activate_steps.action('offer_activate_approve', step_final)
+activate_steps.action('offer_activate_decline', step_final)
 
 
-const activate_offer_wizard = new WizardScene('activate-offer-wizard',
+const offer_activate_wizard = new WizardScene('offer-activate-wizard',
     activate_dialog,
     activate_steps,
-    id_selected,
-    channel_selected,
-    leave_scene
+    step_2,
+    step_3,
+    step_final
 )
 
-logger.info("SUCCESS wizards: offer_activate initialized");
+logger.info("SUCCESS wizards: offer_activate_wizard initialized");
 
 
-module.exports = activate_offer_wizard;
+module.exports = offer_activate_wizard;

@@ -76,6 +76,13 @@ const OFFER_STATUS = {
     updated : 4
 }
 
+const USER_ROLE = {
+    banned : -1,
+    user : 0,
+    channel_owner : 3,
+    admin : 10,
+}
+
 
 
 const SETUP_STEPS = {
@@ -108,5 +115,6 @@ module.exports = {
     OFFER_STATUS,
     APPLY_BUTTON_PREFIX,
     BOT_URL_PREFIX,
-    OFFER_CODES
+    OFFER_CODES,
+    USER_ROLE
 }
