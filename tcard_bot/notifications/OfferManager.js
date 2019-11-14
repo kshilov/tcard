@@ -105,15 +105,15 @@ class OfferManager{
     }
 
     async _notify_participants_finished(offer){
-        var partcipants = await offer.get_participants()
+        var participants = await offer.get_participants()
         var offer_success_message = await offer.get_success_message()
         
-        Object.keys(partcipants).forEach(async function(key){
-            if (!key || !partcipants[key]){
+        Object.keys(participants).forEach(async function(key){
+            if (!key || !participants[key]){
                 return;
             }
 
-            var user_tgId = partcipants[key].tgId
+            var user_tgId = participants[key].tgId
             var user = await db.User.get_user(user_tgId)
             var chat_id = user.chat_id;
 

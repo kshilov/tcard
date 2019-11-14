@@ -29,13 +29,6 @@ async function activate_dialog(ctx){
 async function activate_start(ctx){
 
     var user = await db.User.get_user(ctx.from.id)
-    if (!user){
-        var m = "HACKED ATTEMPT offer_update.activate_start: someone try to use offer_update_manual " + ctx.from.id
-        logger.error(m)
-        ctx.reply(ctx.i18n.t('error_not_allowed'))
-        return ctx.scene.leave()
-    }
-
     var data = await db.Offer.status_update(user.id)
     
     var exit = false;

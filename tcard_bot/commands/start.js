@@ -5,6 +5,11 @@ const db = require('../models');
 const logger = require('../helpers/logger')
 const check_payload = require('../helpers/check_payload')
 
+async function ask_for_city(ctx){
+    return ctx.scene.enter('user-city-wizard')
+}
+
+
 async function init(bot) {
     // Start command
     bot.start(async ctx => {
@@ -25,6 +30,10 @@ async function init(bot) {
 
         if (payload_handle){
             return payload_handle(ctx)
+        }
+
+        if (!user.has_city()){
+            return ask_for_city(ctx);
         }
 
         return sendStart(ctx);

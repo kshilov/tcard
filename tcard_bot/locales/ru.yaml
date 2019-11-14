@@ -6,6 +6,9 @@ decline_action: 'Действие отменено'
 fatal_error_bot_name: 'CODEERROR: 0002 Что-то пошло не так: bot_name не может быть пустым напишите в /support.'
 fatal_error_create_offer: 'CODEERROR: 0003 Не получается создать оффер, напишите в /support'
 error_not_allowed: 'Неверная команда'
+thank_you: 'Спасибо'
+support_ask: 'Пожалуйста, подробно опишите ваш запрос.'
+thank_you_support: 'Спасибо, мы рассмотрим ваш запрос и ответим максимально оперативно.'
 
 # зависимые от типа бота сообщения
 start_exist: | 
@@ -109,8 +112,52 @@ apply_offer_success_message: |
 
   ${message}
 
+###############################
+#
+#user_city wizard messages
+#
+###############################
+user_city_ask: 'Пожалуйста, введите название вашего ГОРОДА:'
+
+###############################
+#
+#offer_managers_list wizard messages
+#
+###############################
+offer_managers_list_show: |
+  *Список автивных менеджеров:*
+  ${managers_list}
 
 
+###############################
+#
+#offer_users_notify wizard messages
+#
+###############################
+offer_users_notify_dialog: 'Отправить оповещение всем участникам оффера.'
+offer_users_notify_select: |
+  *Список доступных офферов:*
+  ${offer_list}
+
+  Введите ID оффера, участникам которого необходимо отправить уведомление.
+
+offer_users_notify_text: 'Введите текст сообщения, для отправки участникам.'
+offer_users_notify_sent_success: 'Сообщение успешно отправлено'
+
+###############################
+#
+#offer_users_list wizard messages
+#
+###############################
+offer_users_list_dialog: 'Информация об участниках ваших офферов'
+offer_users_list_select: |
+  *Список доступных офферов:*
+  ${offer_list}
+
+  Введите ID оффера, для которого необходимо получить список участников.
+
+offer_users_list_approve_request: 'Все верно?'
+offer_users_list_no_participants: 'Для данного оффера нет участников...'
 
 ###############################
 #

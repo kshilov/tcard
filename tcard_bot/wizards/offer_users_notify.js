@@ -14,7 +14,7 @@ async function activate_dialog(ctx){
     // TODO: remove this on production
     var user = await db.User.get_user(ctx.from.id)
     if (!user.offer_access()){
-        var m = "HACKED ATTEMPT offer_update.activate_dialog: someone try to use offer_update_manual " + user.id
+        var m = "HACKED ATTEMPT offer_users_notify.activate_dialog: someone try to use offer_users_notify " + user.id
         logger.error(m)
         return ctx.scene.leave()
     }
@@ -43,7 +43,7 @@ async function activate_dialog(ctx){
     }
 
     
-    ctx.replyWithMarkdown(ctx.i18n.t('offer_users_list_dialog') , 
+    ctx.replyWithMarkdown(ctx.i18n.t('offer_users_notify_dialog') , 
     Markup.inlineKeyboard([
         Markup.callbackButton('➡️ Начать', 'activate_start')
     ]).extra())
@@ -60,17 +60,16 @@ async function activate_start(ctx){
         }
     }
     
-
     var data = await db.Offer.offers_for(telegram_id)
     
     var exit = false;
     var message = '';
 
     if (Object.keys(data).length === 0){
-        message = await i18n.t(i18n.current_locale, 'offer_users_list_select', {offer_list: 'Офферов не найдено'});
+        message = await i18n.t(i18n.current_locale, 'offer_users_notify_select', {offer_list: 'Офферов не найдено'});
         exit = true;
     }else{
-        message = await i18n.t(i18n.current_locale, 'offer_users_list_select', data);
+        message = await i18n.t(i18n.current_locale, 'offer_users_notify_select', data);
     }
 
     ctx.replyWithMarkdown(message)
@@ -84,6 +83,14 @@ async function activate_start(ctx){
 async function id_selected(ctx){
     ctx.wizard.state.offerId = ctx.message.text;
     
+    ctx.replyWithMarkdown(ctx.i18n.t('offer_users_notify_text'))    
+    return ctx.wizard.next()
+}
+
+async function message_input(ctx){
+    ctx.wizard.state.messageText = ctx.message.text;
+
+
     ctx.replyWithMarkdown(ctx.i18n.t('offer_users_list_approve_request'), 
         Markup.inlineKeyboard([
             Markup.callbackButton(ctx.i18n.t('yes'), 'offer_activate_approve'),
@@ -93,7 +100,6 @@ async function id_selected(ctx){
     return ctx.wizard.next()
 }
 
-
 async function leave_scene(ctx){
     if (ctx.update.callback_query.data == 'offer_activate_approve'){
         var offer_id = ctx.wizard.state.offerId;
@@ -101,18 +107,18 @@ async function leave_scene(ctx){
         try {
 
             var participants = await offer.get_participants()
-            
             if (!participants){
                 ctx.reply(ctx.i18n.t('offer_users_list_no_participants'))
                 return ctx.scene.leave()    
             }
 
-            var message = await generate_participants_message(participants)
+            var message = ctx.wizard.state.messageText;
+            await notify_participants(participants, message)
 
-            ctx.replyWithMarkdown(message)
+            ctx.replyWithMarkdown(ctx.i18n.t('offer_users_notify_sent_success'))
             return ctx.scene.leave()
         }catch(error){
-            logger.error("FAILED: offer_users_list.leave_scene %s", error)
+            logger.error("FAILED: offer_users_notify.leave_scene %s", error)
             ctx.reply(ctx.i18n.t('error_message'))
             return ctx.scene.leave()
         }
@@ -122,55 +128,18 @@ async function leave_scene(ctx){
     return ctx.scene.leave()
 }
 
-async function generate_participants_message(participants){
-    
-    var message = '';
+async function notify_participants(participants, message){
     Object.keys(participants).forEach(async function(key){
         if (!key || !participants[key]){
-            return message;
+            return;
         }
 
+        var user_tgId = participants[key].tgId
         var user = await db.User.get_user(user_tgId)
-        var user_tgId = partcipants[key].tgId
-        var hello_data = JSON.parse(partcipants[key].hello_data)
-        
-        var user_text = next_user_message(user, hello_data)
-        if (user_text){
-            message = message + user_text;
-        }
+        var chat_id = user.chat_id;
+
+        await bot.telegram.sendMessage(chat_id, message, extra.markdown())
     })
-
-    return message;
-
-}
-
-function next_user_message(user, hello_data){
-    var text = '********************\n\n';
-    try{
-        var username = user.username;
-        var telegram_id = user.telegram_id;
-        
-        if (username){
-            text = text + 'username: @' + username + '\n';
-        }
-
-        if (telegram_id){
-            text = text + 'telegram_id: ' + telegram_id + '\n';
-        }
-
-        var answers_list = hello_data.answers_list;
-
-        answers_list.forEach(item =>{
-            text = text + 'Вопрос: ' + item.question + '\n';
-            text = text + 'Ответ: ' + item.answer + '\n';
-        })
-
-        text = text + '\n';
-    }catch(error){
-        return undefined;
-    }
-
-    return text;
 }
 
 
@@ -180,14 +149,15 @@ steps.action('offer_activate_approve', leave_scene)
 steps.action('offer_activate_decline', leave_scene)
 
 
-const offer_users_list_wizard = new WizardScene('offer-users-list-wizard',
+const offer_users_notify = new WizardScene('offer-users-notify-wizard',
     activate_dialog,
     steps,
     id_selected,
+    message_input,
     leave_scene
 )
 
-logger.info("SUCCESS wizards: offer_users_list_wizard initialized");
+logger.info("SUCCESS wizards: offer_users_notify initialized");
 
 
-module.exports = offer_users_list_wizard;
+module.exports = offer_users_notify;

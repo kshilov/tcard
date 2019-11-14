@@ -19,6 +19,10 @@ module.exports = function(sequelize, DataTypes) {
 		username: {
 			type: DataTypes.STRING,
 			allowNull: true
+		},
+		city: {
+			type: DataTypes.STRING,
+			allowNull: true
         },
         telegram_id:{
             type: DataTypes.INTEGER,
@@ -68,6 +72,18 @@ All methods start here
 	};
 	
 
+	User.all_channel_owners = async function(){
+		var list = await User.findAll({
+			attributes: ['id', 'username', 'telegram_id'], 
+			raw: true,
+			where: {
+				role: USER_ROLE.channel_owner
+			}
+		});
+
+		return list;
+	}
+
 	User.get_user = async function (telegram_id) {
 		var user = await User.findOne({where: {telegram_id}});
 
@@ -104,6 +120,19 @@ All methods start here
 		)
 
 		return user;
+	}
+
+	User.prototype.add_city = async function(ct){
+		this.city = ct;
+		this.save()
+	}
+
+	User.prototype.has_city = function(){
+		if (this.city){
+			return true;
+		}
+
+		return false;
 	}
 
 	User.prototype.set_role = async function(role){
