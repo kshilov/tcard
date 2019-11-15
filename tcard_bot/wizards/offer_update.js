@@ -1,6 +1,7 @@
 const Composer = require('telegraf/composer')
 const Markup = require('telegraf/markup')
 const WizardScene = require('telegraf/scenes/wizard')
+const {add_offers_list} = require('../helpers/show_lists')
 
 const logger = require('../helpers/logger')
 const {i18n} = require('../middlewares/i18n')
@@ -26,19 +27,23 @@ async function activate_dialog(ctx){
     return ctx.wizard.next()
 }
 
+
 async function activate_start(ctx){
 
     var user = await db.User.get_user(ctx.from.id)
     var data = await db.Offer.status_update(user.id)
     
     var exit = false;
-    var message = '';
+
+    var message = await i18n.t(i18n.current_locale, 'offer_activate_select');
+
+    var offers_message = add_offers_list(data.offer_list)
+
+    message = message + offers_message
+
 
     if (Object.keys(data).length === 0){
-        message = await i18n.t(i18n.current_locale, 'offer_update_select', {offer_list: 'Офферов не найдено'});
         exit = true;
-    }else{
-        message = await i18n.t(i18n.current_locale, 'offer_update_select', data);
     }
 
     ctx.replyWithMarkdown(message)

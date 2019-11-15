@@ -1,8 +1,9 @@
 $env:USE_WEBHOOK = "false";
 $env:WEBHOOK_DOMAIN = "0b1dc8c9.ngrok.io";
 $env:AFF_FRONTEND_DOMAIN = "http://127.0.0.1:5000";
+$env:NODE_ENV="development_shop_bot";
+$env:TOKEN = "903956208:AAHRZbZexpSvc7AZfUTTV0cDBtnTrZKUiyo";
 
-$env:TOKEN = "933836827:AAH-j2XAQf-zo5Ov6eduhXwO3B5LP9pjmLE";
 $env:POLLING_INTERVAL = 10000; 
 $env:TX_POLLING_INTERVAL = 5000;
 $env:MSG_POLLING_INTERVAL = 10000;

@@ -115,9 +115,9 @@ async function edit_answer(ctx){
 }
 
 async function apply_edit(ctx){
-    var new_varian = ctx.message.text;
+    var new_variant = ctx.message.text;
 
-    ctx.wizard.state.answers_list[ctx.wizard.state.edit_num] = new_varian;
+    ctx.wizard.state.answers_list[ctx.wizard.state.edit_num] = new_variant;
     
     show_preview(ctx)
     return ctx.wizard.selectStep(FINISHED_ANSWER_STEP)

@@ -26,6 +26,10 @@ module.exports = function(sequelize, DataTypes) {
 			primaryKey: true,
 			autoIncrement: true
 		},
+		private_title: {
+            type: DataTypes.STRING,
+			allowNull: true,
+		},
 		status : {
 			type: DataTypes.INTEGER,
 			allowNull: true
@@ -87,24 +91,48 @@ module.exports = function(sequelize, DataTypes) {
 		return offer;
 	}
 
+	Offer._serialize_offers = function(offers){
+		var arr = []
+        offers.forEach(element => {
+			arr.push({id: element.id, 
+				privateTitle: element.private_title, 
+				user_id: element.UserId})
+        });
+		
+		return arr;
+	}
+
 	Offer.status_update = async function(user_id){
 		var data = {}
 
 		var offers = await db.Offer.findAll({
-			attributes: ['id'], 
-			raw: true,
 			where : {
 				status : {
 					[db.Sequelize.Op.in] : [OFFER_STATUS.updated, OFFER_STATUS.finished]
 				},
-				UserId : user_id
+				UserId : user_id,
+				type: OFFER_TYPE.button
 			}
 		})
 
-		var arr = []
-        offers.forEach(element => {
-            arr.push(element.id)
-        });
+		var arr = db.Offer._serialize_offers(offers)
+	
+		if(arr.length > 0){
+			data['offer_list'] = arr;
+		}
+		return data;
+
+	}
+
+	Offer.all_offers = async function(){
+		var offers = await db.Offer.findAll({
+			where : {
+				type: OFFER_TYPE.button
+			}
+		})
+
+		var arr = db.Offer._serialize_offers(offers)
+
 		if(arr.length > 0){
 			data['offer_list'] = arr;
 		}
@@ -121,18 +149,14 @@ module.exports = function(sequelize, DataTypes) {
 		}
 
 		var offers = await db.Offer.findAll({
-			attributes: ['id'], 
-			raw: true,
 			where : {
 				UserId : current_user.id,
 				type: OFFER_TYPE.button
 			}
 		})
 
-		var arr = []
-        offers.forEach(element => {
-            arr.push(element.id)
-        });
+		var arr = db.Offer._serialize_offers(offers)
+
 		if(arr.length > 0){
 			data['offer_list'] = arr;
 		}
@@ -153,6 +177,7 @@ module.exports = function(sequelize, DataTypes) {
 				{
 					type : OFFER_TYPE.button,
 					status: OFFER_STATUS.new,
+					private_title: data.privateTitle,
 					current: 0,
 					total : data['amount'],
 					start_amount : 0,
@@ -231,7 +256,8 @@ module.exports = function(sequelize, DataTypes) {
 		this.bot_name = bot_name;
 		this.save()
 
-		await this.set_url(this.bot_name)
+		this.set_url(this.bot_name)
+		return;
 	}
 
 	Offer.prototype.set_url = async function(bot_name){
@@ -283,6 +309,7 @@ module.exports = function(sequelize, DataTypes) {
 
 		try{
 			var exist = await this.get_participant(tgId)
+			
 			if (exist){
 				return OFFER_CODES.exist;
 			}

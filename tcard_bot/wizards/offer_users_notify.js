@@ -1,11 +1,15 @@
 const Composer = require('telegraf/composer')
 const Markup = require('telegraf/markup')
 const WizardScene = require('telegraf/scenes/wizard')
+const {add_offers_list} = require('../helpers/show_lists')
+const extra = require('telegraf/extra')
 
 const logger = require('../helpers/logger')
 const {i18n} = require('../middlewares/i18n')
 
 const db = require('../models')
+const {providers} = require('../providers')
+const bot = providers.bot.bot
 
 const steps = new Composer()
 
@@ -50,6 +54,7 @@ async function activate_dialog(ctx){
     return ctx.wizard.next()
 }
 
+
 async function activate_start(ctx){
 
     var telegram_id = ctx.from.id
@@ -59,18 +64,20 @@ async function activate_start(ctx){
             telegram_id = ctx.wizard.state.offer_for_id;
         }
     }
+    var exit = false;
     
     var data = await db.Offer.offers_for(telegram_id)
     
-    var exit = false;
-    var message = '';
+    var message = await i18n.t(i18n.current_locale, 'offer_users_notify_select');
+
+    var message_list = add_offers_list(data.offer_list);
+
+    message = message + message_list;
 
     if (Object.keys(data).length === 0){
-        message = await i18n.t(i18n.current_locale, 'offer_users_notify_select', {offer_list: 'Офферов не найдено'});
         exit = true;
-    }else{
-        message = await i18n.t(i18n.current_locale, 'offer_users_notify_select', data);
     }
+
 
     ctx.replyWithMarkdown(message)
 

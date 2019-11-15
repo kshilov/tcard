@@ -2,7 +2,8 @@ export USE_WEBHOOK="false"
 export WEBHOOK_DOMAIN="adyellow.com"
 export AFF_FRONTEND_DOMAIN="http://127.0.0.1:5000"
 
-export TOKEN="918154691:AAGAPhMeh0M0EZiJM8N8G5ro0Czy9SnwqTo"
+export NODE_ENV="development_shop_bot"
+export TOKEN="903956208:AAHRZbZexpSvc7AZfUTTV0cDBtnTrZKUiyo"
 export POLLING_INTERVAL=10000
 export TX_POLLING_INTERVAL=5000
 export MSG_POLLING_INTERVAL=10000

@@ -1,6 +1,8 @@
 const Composer = require('telegraf/composer')
 const Markup = require('telegraf/markup')
 const WizardScene = require('telegraf/scenes/wizard')
+const {add_offers_list} = require('../helpers/show_lists')
+const asyncForEach = require('../helpers/async_foreach')
 
 const logger = require('../helpers/logger')
 const {i18n} = require('../middlewares/i18n')
@@ -64,15 +66,18 @@ async function activate_start(ctx){
     var data = await db.Offer.offers_for(telegram_id)
     
     var exit = false;
-    var message = '';
+
+    var message = await i18n.t(i18n.current_locale, 'offer_users_list_select');
+
+    var offers_message = add_offers_list(data.offer_list)
+
+    message = message + offers_message
+
 
     if (Object.keys(data).length === 0){
-        message = await i18n.t(i18n.current_locale, 'offer_users_list_select', {offer_list: 'Офферов не найдено'});
         exit = true;
-    }else{
-        message = await i18n.t(i18n.current_locale, 'offer_users_list_select', data);
     }
-
+    
     ctx.replyWithMarkdown(message)
 
     if (exit){
@@ -101,15 +106,16 @@ async function leave_scene(ctx){
         try {
 
             var participants = await offer.get_participants()
-            
-            if (!participants){
+                     
+            if (Object.keys(participants).length == 0){
                 ctx.reply(ctx.i18n.t('offer_users_list_no_participants'))
                 return ctx.scene.leave()    
             }
 
             var message = await generate_participants_message(participants)
+            
 
-            ctx.replyWithMarkdown(message)
+            ctx.reply(message)
             return ctx.scene.leave()
         }catch(error){
             logger.error("FAILED: offer_users_list.leave_scene %s", error)
@@ -122,24 +128,29 @@ async function leave_scene(ctx){
     return ctx.scene.leave()
 }
 
+
+
 async function generate_participants_message(participants){
     
-    var message = '';
-    Object.keys(participants).forEach(async function(key){
-        if (!key || !participants[key]){
-            return message;
-        }
+    var message = '...\n';
+
+    await asyncForEach(Object.keys(participants), async (key) => {
+        var current = participants[key].dataValues;
+        
+        var user_tgId = current.tgId;
+
+        var hello_input = JSON.parse(current.hello_input)
 
         var user = await db.User.get_user(user_tgId)
-        var user_tgId = partcipants[key].tgId
-        var hello_data = JSON.parse(partcipants[key].hello_data)
         
-        var user_text = next_user_message(user, hello_data)
-        if (user_text){
-            message = message + user_text;
-        }
-    })
+        var user_text = next_user_message(user, hello_input)
 
+        if (user_text){
+            message = message + user_text + '\n';
+        }
+
+    })
+    
     return message;
 
 }
@@ -149,6 +160,7 @@ function next_user_message(user, hello_data){
     try{
         var username = user.username;
         var telegram_id = user.telegram_id;
+        
         
         if (username){
             text = text + 'username: @' + username + '\n';

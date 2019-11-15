@@ -10,6 +10,18 @@
       "collate": "utf8mb4_unicode_ci"	    
     }
   },
+  "development_shop_bot": {
+    "username": "postgres",
+    "password": "appatit",
+    "database": "tcard_shop_bot",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "define" : {
+      "charset": "utf8mb4",
+      "collate": "utf8mb4_unicode_ci"	    
+    }
+  },
+
   "produciton": {
     "username": "postgres",
     "password": "appatit",

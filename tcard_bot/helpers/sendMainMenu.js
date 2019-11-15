@@ -15,15 +15,29 @@ module.exports = async function sendMainMenu(ctx) {
     var keyboard = [];
     keyboard.push(['📢 Поддержка'])
 
-    if (user.offer_access()){
-      keyboard.push(['☸ Создать Оффер', '☸ Активировать Оффер'])
+    if (user && user.offer_access()){
+      keyboard.push(['☸ Создать Закупку', '☸ Активировать Закупку'])
+      keyboard.push(['☸ Список Закупок', '☸ Список участников закупок'])
+      keyboard.push(['☸ Отправить сообщение участникам'])
     }
 
-    bot.hears('☸ Создать Оффер', ctx => ctx.scene.enter('offer-create-wizard'))
-    bot.hears('☸ Активировать Оффер', ctx => ctx.scene.enter('offer-activate-wizard'))
+    if (user && user.is_admin()){
+      keyboard.push(['☸ Список Менеджеров'])
+    }
+
+    bot.hears('☸ Создать Закупку', ctx => ctx.scene.enter('offer-create-wizard'))
+    bot.hears('☸ Активировать Закупку', ctx => ctx.scene.enter('offer-activate-wizard'))
+    bot.hears('☸ Список Закупок', ctx => ctx.scene.enter('offer-list-wizard'))
+    bot.hears('☸ Список участников закупок', ctx => ctx.scene.enter('offer-users-list-wizard'))
+    bot.hears('☸ Отправить сообщение участникам', ctx => ctx.scene.enter('offer-users-notify-wizard'))
+    
+    //admin menu
+    bot.hears('☸ Список Менеджеров', ctx => ctx.scene.enter('offer-managers-list-wizard'))
+
+
     bot.hears('📢 Поддержка', ctx => ctx.scene.enter('support-wizard'))
 
-    return ctx.reply('Выберите пункт меню', Markup
+    return ctx.replyWithMarkdown(ctx.i18n.t('start_exist'), Markup
       .keyboard(keyboard)
       .oneTime()
       .resize()

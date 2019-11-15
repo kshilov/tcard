@@ -2,6 +2,7 @@ const Composer = require('telegraf/composer')
 const Markup = require('telegraf/markup')
 const WizardScene = require('telegraf/scenes/wizard')
 const extra = require('telegraf/extra')
+const {add_offers_list} = require('../helpers/show_lists')
 
 const logger = require('../helpers/logger')
 const {i18n} = require('../middlewares/i18n')
@@ -30,18 +31,21 @@ async function activate_dialog(ctx){
     return ctx.wizard.next()
 }
 
+
 async function step_1(ctx){
     const telegram_id = ctx.from.id;
 
     var data = await db.Offer.offers_for(telegram_id)
     var exit = false;
-    var message = '';
+
+    var message = await i18n.t(i18n.current_locale, 'offer_activate_select');
+
+    var offers_message = add_offers_list(data.offer_list)
+
+    message = message + offers_message
 
     if (Object.keys(data).length === 0){
-        message = await i18n.t(i18n.current_locale, 'offer_activate_select', {offer_list: 'Офферов не найдено'});
         exit = true;
-    }else{
-        message = await i18n.t(i18n.current_locale, 'offer_activate_select', data);
     }
 
     ctx.replyWithMarkdown(message)
@@ -81,17 +85,18 @@ async function step_final(ctx){
 
                 var current_user = await db.User.get_user(ctx.from.id);
 
+               
+                var message_data = await offer.get_message_source(ctx.wizard.state.messageLink) 
+
                 var chat_id = message_data.chat_id;
                 var message_id = message_data.message_id;
 
                 var ref = offer.generate_ref(chat_id, message_id)
-
                 var offer_button = await offer.get_button(updated=false, ref=ref)
-                var message_data = await offer.get_message_source(ctx.wizard.state.messageLink) 
                 
                 if (!current_user.is_admin()){
                     var is_owner = await bot.telegram.getChatMember(chat_id, ctx.from.id);
-                    if (!user.is_channel_admin(is_owner.status)){
+                    if (!current_user.is_channel_admin(is_owner.status)){
                         ctx.replyWithMarkdown(ctx.i18n.t('offer_activate_not_channel_owner'))
                         return ctx.scene.leave() 
                     }
@@ -102,7 +107,8 @@ async function step_final(ctx){
                 if (!published){
                     throw("offer_activate_button: leave_scene failed to published")
                 }
-
+                
+                logger.error("Going publish offer_id:%s chat_id:%s message_id:%s", offer.id, chat_id, message_id)
                 await offer.published(chat_id, message_id)
                 
                 await offer.activate()

@@ -44,7 +44,7 @@ async function start_offer_dialog(ctx){
 
     ctx.reply(ctx.i18n.t('offer_create_dialog') , 
     Markup.inlineKeyboard([
-        Markup.callbackButton('➡️ Создать', 'step_1')
+        Markup.callbackButton('➡️ Начать', 'step_1')
     ]).extra())
 
     return ctx.wizard.next();
@@ -112,7 +112,7 @@ async function step_progress(ctx){
 
 async function step_show_preview(ctx){
     var data = ctx.wizard.state;
-    
+
     var message = await i18n.t(i18n.current_locale, 'offer_create_preview_template', data)
 
     ctx.replyWithMarkdown(message, 
@@ -137,13 +137,14 @@ async function step_finished(ctx){
         }
 
         var current_user = await db.User.get_user(ctx.from.id)
-        
-        if (current_user.is_admin()){
+
+        if (current_user && current_user.is_admin()){
             if (ctx.wizard.state.create_for_id){
                 telegram_id = ctx.wizard.state.create_for_id;
             }
         }
-    
+
+
         var offer = await db.Offer.new_offer(telegram_id, data)
 
         if (!offer || offer < 0){

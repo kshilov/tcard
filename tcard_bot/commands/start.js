@@ -1,6 +1,8 @@
 'use strict';
 
 const sendStart = require('../helpers/sendStart')
+const sendMainMenu = require('../helpers/sendMainMenu')
+
 const db = require('../models');
 const logger = require('../helpers/logger')
 const check_payload = require('../helpers/check_payload')
@@ -36,7 +38,7 @@ async function init(bot) {
             return ask_for_city(ctx);
         }
 
-        return sendStart(ctx);
+        return sendMainMenu(ctx);
     })
 }
 
