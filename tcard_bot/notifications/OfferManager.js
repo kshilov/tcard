@@ -134,7 +134,8 @@ class OfferManager{
 
                 var chat_id = publications[key].chat_id
                 var message_id = publications[key].message_id
-                var ref = publications[key].ref
+                //var ref = publications[key].ref
+                var ref=undefined;
 
                 var updated_kb = await offer.get_button(true, ref)
                 await bot.telegram.editMessageReplyMarkup(chat_id, message_id, 0, updated_kb, extra.markup(updated_kb).markdown())

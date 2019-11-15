@@ -37,3 +37,18 @@ journalctl -u prod-droplet -e
 systemctl restart prod-droplet
 
 systemctl daemon-reload
+
+https://medium.com/@nikitakolmogorov/how-to-deploy-node-js-app-to-digital-ocean-droplet-with-free-continuous-integration-4a6cb73a6903
+
+
+/home/shop_bot_droplet
+yarn init 
+yarn install 
+touch /etc/systemd/system/shop-bot-droplet.service
+
+// ПЕРЕД СОЗДАНИЕМ БАЗЫ установть env переменные, чтобы не стереть текущую базу
+
+systemctl enable shop-bot-droplet
+systemctl start shop-bot-droplet
+systemctl stop shop-bot-droplet
+journalctl -u shop-bot-droplet -e

@@ -26,6 +26,7 @@ async function init(bot) {
 
         var payload_handle = await check_payload(ctx, ctx.startPayload)
 
+
         if (ctx.state.ref){
             await user.add_ref(ctx.state.ref)
         }

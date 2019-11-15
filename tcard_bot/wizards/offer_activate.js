@@ -91,7 +91,8 @@ async function step_final(ctx){
                 var chat_id = message_data.chat_id;
                 var message_id = message_data.message_id;
 
-                var ref = offer.generate_ref(chat_id, message_id)
+                //var ref = offer.generate_ref(chat_id, message_id)
+                var ref=undefined;
                 var offer_button = await offer.get_button(updated=false, ref=ref)
                 
                 if (!current_user.is_admin()){
